@@ -12,10 +12,12 @@ local popup
 function love.load()
     love.window.setMode(800, 600)
     
-    rootView = GUI.View(0, 0, love.graphics.getWidth(), love.graphics.getHeight())
+    rootView = GUI.GUIElement(0, 0, love.graphics.getWidth(), love.graphics.getHeight())
+    rootView.scrollBarEnable = true
+    
     
     -- Create a column layout for the main content
-    local mainLayout = GUI.ColumnLayout(0, 20, 760, 560, 10)
+    local mainLayout = GUI.ColumnLayout(100, 20, 760, 1560, 10)
     rootView:addChild(mainLayout)
     
     -- Create a row layout for buttons
@@ -49,8 +51,7 @@ function love.load()
 
     textArea = GUI.TextArea(10, 10, 200, 100, "Hello, world!", true)
     mainLayout:addChild(textArea)
-
-    myProgressBar = GUI.ProgressBar(0, 0, 200, 20, 0, 100, 50)
+    myProgressBar = GUI.ProgressBar(0, 0, 200, 50, 0, 100)
     mainLayout:addChild(myProgressBar)
 
     local optionSelect = GUI.OptionSelect(0, 0, 100, 30, {"Option 1", "Option 2", "Option 3"})
@@ -96,29 +97,29 @@ function love.draw()
     love.graphics.print("Slider Value: " .. string.format("%.2f", sliderValue), 200, 580)
 
 
-    GUI.drawOverlayLayer()
+    --GUI.drawOverlayLayer()
 end
 
 function love.mousepressed(x, y, button)
-    if GUI.handleOverlayMouseEvent('mousepressed', x, y, button) then
-        return  -- Stop processing if an overlay item handled the event
-    end
+    -- if GUI.handleOverlayMouseEvent('mousepressed', x, y, button) then
+    --     return  -- Stop processing if an overlay item handled the event
+    -- end
     -- Handle regular GUI mousepressed events
     rootView:mousepressed(x, y, button)
 end
 
 function love.mousemoved(x, y, dx, dy)
-    if GUI.handleOverlayMouseEvent('mousemoved', x, y, dx, dy) then
-        return  -- Stop processing if an overlay item handled the event
-    end
+    -- if GUI.handleOverlayMouseEvent('mousemoved', x, y, dx, dy) then
+    --     return  -- Stop processing if an overlay item handled the event
+    -- end
     -- Handle regular GUI mousemoved events
     rootView:mousemoved(x, y, dx, dy)
 end
 
 function love.mousereleased(x, y, button)
-    if GUI.handleOverlayMouseEvent('mousereleased', x, y, button) then
-        return  -- Stop processing if an overlay item handled the event
-    end
+    -- if GUI.handleOverlayMouseEvent('mousereleased', x, y, button) then
+    --     return  -- Stop processing if an overlay item handled the event
+    -- end
     -- Handle regular GUI mousereleased events
     rootView:mousereleased(x, y, button)
 end
