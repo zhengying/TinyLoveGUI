@@ -14,18 +14,22 @@ function love.load()
     
     rootView = GUI.GUIElement(0, 0, love.graphics.getWidth(), love.graphics.getHeight())
     rootView.scrollBarEnable = true
+    rootView.tag = 'root'
     
     
     -- Create a column layout for the main content
     local mainLayout = GUI.ColumnLayout(100, 20, 760, 1560, 10)
+    mainLayout.tag = "mainLayout"
     rootView:addChild(mainLayout)
     
     -- Create a row layout for buttons
     local buttonRow = GUI.RowLayout(0, 0, 760, 50)
+    buttonRow.tag = "buttonRow"
     mainLayout:addChild(buttonRow)
     
     -- Add buttons to the row layout
     local button1 = GUI.Button(0, 0, 150, 40, "Click Me!") 
+    button1.tag = "button1"
     button1.onClick = function()
         clickCount = clickCount + 1
         popup:show("Button 'Click Me!' clicked")
@@ -34,6 +38,7 @@ function love.load()
     buttonRow:addChild(button1)
     
     local button2 = GUI.Button(0, 0, 150, 40, "Reset")
+    button2.tag = "button2"
     button2.onClick = function()
         clickCount = 0
         sliderValue = 50
@@ -44,17 +49,21 @@ function love.load()
     
     -- Add a slider
     local slider = GUI.Slider(0, 0, 300, 30, 0, 100, sliderValue)
+    slider.tag = "slider"
     slider.onChange = function(value)
         sliderValue = value
     end
     mainLayout:addChild(slider)
 
     textArea = GUI.TextArea(10, 10, 200, 100, "Hello, world!", true)
+    textArea.tag = "textArea"
     mainLayout:addChild(textArea)
     myProgressBar = GUI.ProgressBar(0, 0, 200, 50, 0, 100)
+    myProgressBar.tag = "myProgressBar"
     mainLayout:addChild(myProgressBar)
 
     local optionSelect = GUI.OptionSelect(0, 0, 100, 30, {"Option 1", "Option 2", "Option 3"})
+    optionSelect.tag = "optionSelect"
     optionSelect.onChange = function(selectedOption, selectedIndex)
     print("Selected: " .. selectedOption .. " at index " .. selectedIndex)
     end
@@ -62,15 +71,18 @@ function love.load()
     
     -- Create a grid-like layout using nested row and column layouts
     local gridLayout = GUI.ColumnLayout(0, 0, 760, 400)
+    gridLayout.tag = "gridLayout"
     mainLayout:addChild(gridLayout)
     
     for i = 1, 3 do
         local row = GUI.RowLayout(0, 0, 760, 88)
+        row.tag = "GridRowLayout_" .. tostring(i)
         gridLayout:addChild(row)
         
         for j = 1, 3 do
             local cellNumber = (i-1)*3 + j
             local cell = GUI.Button(0, 0, 180, 80, "Cell " .. cellNumber)
+            cell.tag = "gridButton_" .. tostring(cellNumber)
             cell.onClick = function()
                 popup:show("Cell " .. cellNumber .. " clicked")
             end
@@ -80,6 +92,7 @@ function love.load()
 
     -- Add popup
     popup = GUI.Popup(love.graphics.getWidth() / 2 - 100, love.graphics.getHeight() - 100, 200, 50)
+    popup.tag = 'popup'
     rootView:addChild(popup)
 end
 

@@ -65,7 +65,24 @@ function Object:__call(...)
   return obj
 end
 
+-- Helper function to split string into lines
+function string:split(sep)
+    local sep, fields = sep or ":", {}
+    local pattern = string.format("([^%s]+)", sep)
+    self:gsub(pattern, function(c) fields[#fields+1] = c end)
+    return fields
+end
 
+function table.indexof(t, value)
+    for i, v in ipairs(t) do
+        if v == value then
+            return i
+        end
+    end
+    return nil
+end
+
+---  START 
 -- Base class for all GUI elements
 local GUIElement = Object:extend()
 
@@ -76,6 +93,13 @@ GUIElement.ZIndexNames = {
     POPUP = 'POPUP'  -- Added for elements like dropdowns that should be on top
 }
 
+GUIElement.State = {
+    NORMAL = "normal",
+    HOVER = "hover",
+    PRESSED = "pressed"
+  }
+  
+
 -- Define zIndex groups
 GUIElement.ZIndexGroups = {
     SHADOW = 10,
@@ -83,6 +107,8 @@ GUIElement.ZIndexGroups = {
     MODAL_WINDOW = 1000,
     POPUP = 2000  -- Added for elements like dropdowns that should be on top
 }
+
+GUIElement.focusedElement = nil
 
 function GUIElement:init(x, y, width, height)
     self.x = x or 0
@@ -95,6 +121,9 @@ function GUIElement:init(x, y, width, height)
     self.enabled = true
     self.zIndex = GUIElement.ZIndexGroups.NORMAL
     self.zIndexOffset = 0
+    self.focusable = false
+    self.focused = false
+    self.tag = ""
 
     -- Scrolling properties
     self.scrollOffset = {x = 0, y = 0}
@@ -104,6 +133,7 @@ function GUIElement:init(x, y, width, height)
     self.scrollBarGrabbed = {x = false, y = false}
     self.scrollBarClickOffset = {x = 0, y = 0}
     self.scrollBarEnable = false
+    self.state = GUIElement.State.NORMAL
 end
 
 function GUIElement:updateScrollBars()
@@ -148,6 +178,11 @@ function GUIElement:draw()
     love.graphics.translate(self.x, self.y)
 
     if self.scrollBarEnable then
+        if GUIElement.focusedElement == nil then
+            self.focusable = true
+            self.focused = true
+            GUIElement.focusedElement = self
+        end
         -- Set scissor to clip content
         local scissorX, scissorY = self:getGlobalPosition()
         love.graphics.setScissor(scissorX, scissorY, self.width, self.height)
@@ -203,12 +238,51 @@ end
 
 function GUIElement:update(dt)
     if not self.enabled then return end
+
+    -- Check if the focused element is still valid
+    if self.parent == nil then
+        if GUIElement.focusedElement and not GUIElement.focusedElement.visible then
+            GUIElement.focusedElement:unsetFocus()
+        end
+    end
+
     if self.scrollBarEnable then
         self:updateScrollBars()
     end
     for _, child in ipairs(self.children) do
         child:update(dt)
     end
+end
+
+-- Add new methods for focus handling
+function GUIElement:setFocus()
+    if GUIElement.focusedElement ~= self then
+        if GUIElement.focusedElement then
+            GUIElement.focusedElement:unsetFocus()
+        end
+        GUIElement.focusedElement = self
+        self.focused = true
+        self:onFocusGained()
+    end
+end
+
+function GUIElement:unsetFocus()
+    if GUIElement.focusedElement == self then
+        GUIElement.focusedElement = nil
+        self.focused = false
+        self:onFocusLost()
+    end
+end
+
+function GUIElement:_stateChanged(new_state)
+    if new_state == nil or self.state == nil then
+        print('! new state is nil')
+    end
+    if self.state ~= new_state then
+        print("tag:"..self.tag .. " state changed:" .. self.state .. '~>' .. new_state)
+    end
+
+    self.state = new_state
 end
 
 function GUIElement:mousepressed(x, y, button)
@@ -236,12 +310,23 @@ function GUIElement:mousepressed(x, y, button)
     end
 
     if self:containsPoint(localX, localY) then
+        -- Set focus to this element if it's clickable
+        if self.focusable then
+            self:setFocus()
+        end
+
         for i = #self.children, 1, -1 do
             if self.children[i]:mousepressed(localX, localY, button) then
                 return true
             end
         end
+        self:_stateChanged(GUIElement.State.PRESSED)
+
         return self:onMousePressed(localX, localY, button)
+    else
+        self:_stateChanged(GUIElement.State.NORMAL)
+       -- Remove focus if clicking outside the element
+       self:unsetFocus()
     end
     return false
 end
@@ -263,6 +348,16 @@ function GUIElement:mousereleased(x, y, button)
                 return true
             end
         end
+
+        if button == 1 and self.state == GUIElement.State.PRESSED then
+            if self.onClick then
+                self.onClick()
+            end
+
+            self:_stateChanged(GUIElement.State.HOVER)
+            return true
+        end
+
         return self:onMouseReleased(localX, localY, button)
     end
     return false
@@ -283,15 +378,28 @@ function GUIElement:mousemoved(x, y, dx, dy)
         end
     end
 
-    if self:containsPoint(localX, localY) then
-        for i = #self.children, 1, -1 do
-            if self.children[i]:mousemoved(localX, localY, localDX, localDY) then
-                return true
-            end
+    local containsPoint = self:containsPoint(localX, localY)
+    local childHandled = false
+
+    for i = #self.children, 1, -1 do
+        if self.children[i]:mousemoved(localX, localY, localDX, localDY) then
+            childHandled = true
+            break
         end
-        return self:onMouseMoved(localX, localY, localDX, localDY)
     end
-    return false
+
+    if containsPoint then
+        if not childHandled and self.state ~= GUIElement.State.PRESSED then
+            self:_stateChanged(GUIElement.State.HOVER)
+        end
+        return self:onMouseMoved(localX, localY, localDX, localDY) or childHandled
+    else
+        if self.state == GUIElement.State.HOVER then
+            self:_stateChanged(GUIElement.State.NORMAL)
+        end
+    end
+
+    return childHandled
 end
 
 function GUIElement:updateVerticalScrollFromMouse(y)
@@ -328,12 +436,13 @@ function GUIElement:wheelmoved(x, y)
         end
     end
 
-    if self.scrollBarVisible.y then
-        self.scrollOffset.y = math.max(0, math.min(self.scrollOffset.y - y * self.scrollSpeed, select(2, self:getContentDimensions()) - self.height))
-        return true
+    if self.focused then
+        if self.scrollBarVisible.y then
+            self.scrollOffset.y = math.max(0, math.min(self.scrollOffset.y - y * self.scrollSpeed, select(2, self:getContentDimensions()) - self.height))
+            return true
+        end
+        return self:onWheelMoved(x, y)
     end
-
-    return self:onWheelMoved(x, y)
 end
 
 function GUIElement:getGlobalPosition()
@@ -382,6 +491,7 @@ end
 
 function GUIElement:drawSelf()
     -- Implement in subclasses
+
 end
 
 
@@ -417,6 +527,8 @@ function GUIElement:onMouseMoved(x, y, dx, dy) return false end
 function GUIElement:onWheelMoved(x, y) return false end
 function GUIElement:onKeyPressed(key, scancode, isrepeat) return false end
 function GUIElement:onTextInput(text) return false end
+function GUIElement:onFocusGained() end
+function GUIElement:onFocusLost() end
 
 -- RowLayout: Arranges children horizontally
 local RowLayout = GUIElement:extend()
@@ -477,7 +589,6 @@ function Button:init(x, y, width, height, text)
     Button.super.init(self, x, y, width, height)
     self.text = text or "Button"
     self.onClick = function() end
-    self.state = "normal"  -- can be "normal", "hover", or "pressed"
 end
 
 function Button:drawSelf()
@@ -492,33 +603,33 @@ function Button:drawSelf()
     love.graphics.printf(self.text, 0, self.height / 2 - love.graphics.getFont():getHeight() / 2, self.width, "center")
 end
 
-function Button:onMousePressed(x, y, button)
-    if button == 1 then
-        self.state = "pressed"
-        return true
-    end
-    return false
-end
+-- function Button:onMousePressed(x, y, button)
+--     if button == 1 then
+--         self.state = "pressed"
+--         return true
+--     end
+--     return false
+-- end
 
-function Button:onMouseReleased(x, y, button)
-    if button == 1 and self.state == "pressed" then
-        self.onClick()
-        self.state = "hover"
-        return true
-    end
-    return false
-end
+-- function Button:onMouseReleased(x, y, button)
+--     if button == 1 and self.state == "pressed" then
+--         self.onClick()
+--         self.state = "hover"
+--         return true
+--     end
+--     return false
+-- end
 
-function Button:onMouseMoved(x, y, dx, dy)
-    if self:containsPoint(x, y) then
-        if self.state ~= "pressed" then
-            self.state = "hover"
-        end
-    else
-        self.state = "normal"
-    end
-    return true
-end
+-- function Button:onMouseMoved(x, y, dx, dy)
+--     if self:containsPoint(x, y) then
+--         if self.state ~= "pressed" then
+--             self.state = "hover"
+--         end
+--     else
+--         self.state = "normal"
+--     end
+--     return true
+-- end
 
 -- function Button:mousemoved(x, y, dx, dy)
 --     local localX, localY = x - self.x, y - self.y
@@ -593,6 +704,7 @@ function TextArea:init(x, y, width, height, text, multiline)
     self.scrollBarPosition = 0
     self.contentHeight = 0
     self.scrollBarClickOffset = 0  -- New variable to store the click offset
+    self.focusable = true  -- Make TextArea focusable
 end
 
 function TextArea:drawSelf()
@@ -654,7 +766,6 @@ end
 
 function TextArea:onMousePressed(x, y, button)
     if button == 1 then
-        self.focused = true
         if x > self.width - self.scrollBarWidth and self._scrollBarVisible then
             self._scrollBarGrabbed = true
             local scrollBarHeight = (self.height / self.contentHeight) * self.height
@@ -683,6 +794,16 @@ function TextArea:onMouseMoved(x, y, dx, dy)
     end
     return false
 end
+
+-- Add focus event handlers
+function TextArea:onFocusGained()
+    -- You can add any specific behavior when the TextArea gains focus
+end
+
+function TextArea:onFocusLost()
+    -- You can add any specific behavior when the TextArea loses focus
+end
+
 function TextArea:updateScrollFromMouse(y)
     local scrollBarHeight = (self.height / self.contentHeight) * self.height
     local scrollableHeight = self.height - scrollBarHeight
@@ -702,9 +823,11 @@ function TextArea:updateScrollFromMouse(y)
 end
 
 function TextArea:onWheelMoved(x, y)
-    if self._scrollBarVisible then
-        self._scrollOffset = math.max(0, math.min(self._scrollOffset - y * self.scrollSpeed, self.contentHeight - self.height))
-        return true
+    if self.focused then
+        if self._scrollBarVisible then
+            self._scrollOffset = math.max(0, math.min(self._scrollOffset - y * self.scrollSpeed, self.contentHeight - self.height))
+            return true
+        end
     end
     return false
 end
@@ -800,14 +923,6 @@ function TextArea:ensureCursorVisible()
     end
 
     self._scrollOffset = math.max(0, math.min(self._scrollOffset, self.contentHeight - self.height))
-end
-
--- Helper function to split string into lines
-function string:split(sep)
-    local sep, fields = sep or ":", {}
-    local pattern = string.format("([^%s]+)", sep)
-    self:gsub(pattern, function(c) fields[#fields+1] = c end)
-    return fields
 end
 
 -- Helper functions for TextArea 
@@ -1116,184 +1231,6 @@ end
 function Popup:setTextColor(color)
     self.textColor = color
 end
-
-local ScrollView = GUIElement:extend()
-
--- function ScrollView:init(x, y, width, height, content)
---     ScrollView.super.init(self, x, y, width, height)
---     self.content = content
---     self.content.parent = self
---     self.scrollOffset = {x = 0, y = 0}
---     self.scrollSpeed = 20
---     self.scrollBarWidth = 10
---     self.scrollBarVisible = {x = false, y = false}
---     self.scrollBarGrabbed = {x = false, y = false}
---     self.scrollBarClickOffset = {x = 0, y = 0}
--- end
-
--- function ScrollView:update(dt)
---     ScrollView.super.update(self, dt)
---     self:updateScrollBars()
--- end
-
--- function ScrollView:updateScrollBars()
---     self.scrollBarVisible.x = self.content.width > self.width
---     self.scrollBarVisible.y = self.content.height > self.height
-
---     if self.scrollBarVisible.x then
---         local maxScrollX = self.content.width - self.width
---         self.scrollOffset.x = math.min(self.scrollOffset.x, maxScrollX)
---     else
---         self.scrollOffset.x = 0
---     end
-
---     if self.scrollBarVisible.y then
---         local maxScrollY = self.content.height - self.height
---         self.scrollOffset.y = math.min(self.scrollOffset.y, maxScrollY)
---     else
---         self.scrollOffset.y = 0
---     end
--- end
-
--- function ScrollView:draw()
---     love.graphics.push()
---     love.graphics.translate(self.x, self.y)
-
---     -- Set scissor to clip content
---     local scissorX, scissorY = self:getGlobalPosition()
---     love.graphics.setScissor(scissorX, scissorY, self.width, self.height)
-
---     -- Draw content
---     love.graphics.push()
---     love.graphics.translate(-self.scrollOffset.x, -self.scrollOffset.y)
---     self.content:draw()
---     love.graphics.pop()
-
---     love.graphics.setScissor()
-
---     -- Draw scroll bars
---     self:drawScrollBars()
-
---     love.graphics.pop()
--- end
-
--- function ScrollView:drawScrollBars()
---     if self.scrollBarVisible.y then
---         love.graphics.setColor(0.8, 0.8, 0.8)
---         love.graphics.rectangle("fill", self.width - self.scrollBarWidth, 0, self.scrollBarWidth, self.height)
-        
---         local scrollBarHeight = (self.height / self.content.height) * self.height
---         local scrollBarY = (self.scrollOffset.y / (self.content.height - self.height)) * (self.height - scrollBarHeight)
-        
---         love.graphics.setColor(0.5, 0.5, 0.5)
---         love.graphics.rectangle("fill", self.width - self.scrollBarWidth, scrollBarY, self.scrollBarWidth, scrollBarHeight)
---     end
-
---     if self.scrollBarVisible.x then
---         love.graphics.setColor(0.8, 0.8, 0.8)
---         love.graphics.rectangle("fill", 0, self.height - self.scrollBarWidth, self.width, self.scrollBarWidth)
-        
---         local scrollBarWidth = (self.width / self.content.width) * self.width
---         local scrollBarX = (self.scrollOffset.x / (self.content.width - self.width)) * (self.width - scrollBarWidth)
-        
---         love.graphics.setColor(0.5, 0.5, 0.5)
---         love.graphics.rectangle("fill", scrollBarX, self.height - self.scrollBarWidth, scrollBarWidth, self.scrollBarWidth)
---     end
--- end
-
--- function ScrollView:mousepressed(x, y, button)
---     if ScrollView.super.mousepressed(self, x, y, button) then return true end
-
---     if button == 1 then
---         if self.scrollBarVisible.y and x > self.width - self.scrollBarWidth then
---             self.scrollBarGrabbed.y = true
---             local scrollBarHeight = (self.height / self.content.height) * self.height
---             local scrollBarY = (self.scrollOffset.y / (self.content.height - self.height)) * (self.height - scrollBarHeight)
---             self.scrollBarClickOffset.y = y - scrollBarY
---             return true
---         elseif self.scrollBarVisible.x and y > self.height - self.scrollBarWidth then
---             self.scrollBarGrabbed.x = true
---             local scrollBarWidth = (self.width / self.content.width) * self.width
---             local scrollBarX = (self.scrollOffset.x / (self.content.width - self.width)) * (self.width - scrollBarWidth)
---             self.scrollBarClickOffset.x = x - scrollBarX
---             return true
---         end
---     end
-
---     return false
--- end
-
--- function ScrollView:mousereleased(x, y, button)
---     if ScrollView.super.mousereleased(self, x, y, button) then return true end
-
---     if button == 1 then
---         self.scrollBarGrabbed.x = false
---         self.scrollBarGrabbed.y = false
---         return true
---     end
-
---     return false
--- end
-
--- function ScrollView:mousemoved(x, y, dx, dy)
---     if ScrollView.super.mousemoved(self, x, y, dx, dy) then return true end
-
---     if self.scrollBarGrabbed.y then
---         self:updateVerticalScrollFromMouse(y)
---         return true
---     elseif self.scrollBarGrabbed.x then
---         self:updateHorizontalScrollFromMouse(x)
---         return true
---     end
-
---     return false
--- end
-
--- function ScrollView:updateVerticalScrollFromMouse(y)
---     local scrollBarHeight = (self.height / self.content.height) * self.height
---     local scrollableHeight = self.height - scrollBarHeight
-    
---     local newScrollBarY = y - self.scrollBarClickOffset.y
---     newScrollBarY = math.max(0, math.min(newScrollBarY, scrollableHeight))
-    
---     local scrollRatio = newScrollBarY / scrollableHeight
---     self.scrollOffset.y = scrollRatio * (self.content.height - self.height)
---     self.scrollOffset.y = math.max(0, math.min(self.scrollOffset.y, self.content.height - self.height))
--- end
-
--- function ScrollView:updateHorizontalScrollFromMouse(x)
---     local scrollBarWidth = (self.width / self.content.width) * self.width
---     local scrollableWidth = self.width - scrollBarWidth
-    
---     local newScrollBarX = x - self.scrollBarClickOffset.x
---     newScrollBarX = math.max(0, math.min(newScrollBarX, scrollableWidth))
-    
---     local scrollRatio = newScrollBarX / scrollableWidth
---     self.scrollOffset.x = scrollRatio * (self.content.width - self.width)
---     self.scrollOffset.x = math.max(0, math.min(self.scrollOffset.x, self.content.width - self.width))
--- end
-
--- function ScrollView:wheelmoved(x, y)
---     if ScrollView.super.wheelmoved(self, x, y) then return true end
-
---     if self.scrollBarVisible.y then
---         self.scrollOffset.y = math.max(0, math.min(self.scrollOffset.y - y * self.scrollSpeed, self.content.height - self.height))
---         return true
---     end
-
---     return false
--- end
-
--- function ScrollView:getGlobalPosition()
---     local x, y = self.x, self.y
---     local parent = self.parent
---     while parent do
---         x = x + parent.x
---         y = y + parent.y
---         parent = parent.parent
---     end
---     return x, y
--- end
 
 -- Main GUI table
 local GUI = {
