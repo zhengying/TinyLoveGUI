@@ -354,12 +354,14 @@ function GUIElement:mousereleased(x, y, button)
                 self.onClick()
             end
 
+            self:onMouseReleased(localX, localY, button)
+
             self:_stateChanged(GUIElement.State.HOVER)
             return true
         end
-
-        return self:onMouseReleased(localX, localY, button)
     end
+
+    self:onMouseReleased(localX, localY, button)
     return false
 end
 
@@ -768,6 +770,7 @@ function TextArea:onMousePressed(x, y, button)
     if button == 1 then
         if x > self.width - self.scrollBarWidth and self._scrollBarVisible then
             self._scrollBarGrabbed = true
+            print('mouse Pressed',self._scrollBarGrabbed)
             local scrollBarHeight = (self.height / self.contentHeight) * self.height
             local scrollBarY = (self._scrollOffset / (self.contentHeight - self.height)) * (self.height - scrollBarHeight)
             self.scrollBarClickOffset = y - scrollBarY  -- Store the offset where the user clicked on the scroll bar
@@ -782,13 +785,15 @@ end
 function TextArea:onMouseReleased(x, y, button)
     if button == 1 then
         self._scrollBarGrabbed = false
+        print('mouse Released',self._scrollBarGrabbed)
         return true
     end
     return false
 end
 
 function TextArea:onMouseMoved(x, y, dx, dy)
-    if self._scrollBarGrabbed then
+    print("_scrollBarGrabbed:", tostring(self._scrollBarGrabbed))
+    if self._scrollBarGrabbed  then
         self:updateScrollFromMouse(y)
         return true
     end
@@ -942,8 +947,16 @@ function TextArea:getGlobalPosition()
     local x, y = self.x, self.y
     local parent = self.parent
     while parent do
-        x = x + parent.x
-        y = y + parent.y
+
+        local scrollOffset = {x=0,y=0}
+        if parent.scrollBarEnable == true then
+            scrollOffset = parent.scrollOffset
+        end
+
+        x = x + parent.x - scrollOffset.x
+        y = y + parent.y - scrollOffset.y
+
+
         parent = parent.parent
     end
     return x, y

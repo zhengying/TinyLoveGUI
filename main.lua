@@ -136,6 +136,7 @@ end
 function love.draw()
     love.graphics.setBackgroundColor(0.2, 0.4, 0.4)
     rootView:draw()
+    print(tostring(rootView.scrollOffset.x), tostring(rootView.scrollOffset.y))
     
     -- Draw some text to show the current state
     love.graphics.setColor(1, 1, 1)
