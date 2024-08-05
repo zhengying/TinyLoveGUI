@@ -3,6 +3,9 @@ if os.getenv("LOCAL_LUA_DEBUGGER_VSCODE") == "1" then
 end
 
 local GUI = require "tinylovegui"  -- Make sure this points to your tinylovegui.lua file
+local icon_folder = love.graphics.newImage('assets/images/folder.png')
+local icon_folder_opened = love.graphics.newImage('assets/images/open-folder.png')
+local icon_file = love.graphics.newImage('assets/images/document.png')
 
 local rootView
 local clickCount = 0
@@ -18,7 +21,7 @@ function love.load()
     
     
     -- Create a column layout for the main content
-    local mainLayout = GUI.ColumnLayout(100, 20, 760, 1560, 10)
+    local mainLayout = GUI.ColumnLayout(100, 20, 760, 2560, 10)
     mainLayout.tag = "mainLayout"
     rootView:addChild(mainLayout)
     
@@ -48,14 +51,14 @@ function love.load()
     buttonRow:addChild(button2)
     
     -- Add a slider
-    local slider = GUI.Slider(0, 0, 300, 30, 0, 100, sliderValue)
+    local slider = GUI.Slider(0, 0, 600, 30, 0, 100, sliderValue)
     slider.tag = "slider"
     slider.onChange = function(value)
         sliderValue = value
     end
     mainLayout:addChild(slider)
 
-    textArea = GUI.TextArea(10, 10, 200, 100, "Hello, world!", true)
+    textArea = GUI.TextArea(0, 0, 200, 100, "Hello, world!", true)
     textArea.tag = "textArea"
     mainLayout:addChild(textArea)
     myProgressBar = GUI.ProgressBar(0, 0, 200, 50, 0, 100)
@@ -72,7 +75,7 @@ function love.load()
     -- Create a grid-like layout using nested row and column layouts
     local gridLayout = GUI.ColumnLayout(0, 0, 760, 400)
     gridLayout.tag = "gridLayout"
-    mainLayout:addChild(gridLayout)
+    --mainLayout:addChild(gridLayout)
     
     for i = 1, 3 do
         local row = GUI.RowLayout(0, 0, 760, 88)
@@ -94,6 +97,36 @@ function love.load()
     popup = GUI.Popup(love.graphics.getWidth() / 2 - 100, love.graphics.getHeight() - 100, 200, 50)
     popup.tag = 'popup'
     rootView:addChild(popup)
+
+    local treeView = GUI.TreeView(10, 10, 200, 300)  -- x, y, width, height
+    treeView:setGroupIcon(icon_folder_opened, icon_folder)
+    treeView:setLeafIcon(icon_file)
+    local root = treeView.root
+    
+    -- Node with a single icon for all states
+    local node1 = treeView:addNode(root, "Node 1")
+    
+    -- Node with state-specific icons
+    local node2 = treeView:addNode(root, "Node 2")
+    
+    local node1_1 = treeView:addNode(node1, "Node 1.1")
+    local node2_1 = treeView:addNode(node2, "Node 2.1")
+    local node2_2 = treeView:addNode(node2, "Node 2.2")
+
+    -- Node with state-specific icons
+    local node3 = treeView:addNode(root, "Node 3")
+    
+    local node1_1 = treeView:addNode(node3, "Node 3.1")
+    local node2_1 = treeView:addNode(node3, "Node 3.1")
+    local node2_2 = treeView:addNode(node3, "Node 3.2")
+    
+    -- Add a callback for node selection
+    treeView.onNodeSelected = function(node)
+        print("Selected node: " .. node.label)
+    end
+    
+    -- Add the treeView to your main GUI container
+    mainLayout:addChild(treeView)
 end
 
 function love.update(dt)
@@ -108,9 +141,6 @@ function love.draw()
     love.graphics.setColor(1, 1, 1)
     love.graphics.print("Click Count: " .. clickCount, 20, 580)
     love.graphics.print("Slider Value: " .. string.format("%.2f", sliderValue), 200, 580)
-
-
-    --GUI.drawOverlayLayer()
 end
 
 function love.mousepressed(x, y, button)

@@ -1232,6 +1232,220 @@ function Popup:setTextColor(color)
     self.textColor = color
 end
 
+
+
+local TreeView = GUIElement:extend()
+
+-- node {label = "Root", children = {}, expanded = true, icon = nil, state = "normal"}
+
+-- TreeView.icons = {
+-- }
+
+function TreeView:init(x, y, width, height)
+    TreeView.super.init(self, x, y, width, height)
+    self.root = {label = "Root", children = {}, expanded = true, icon = nil, state = "normal"}
+    self.indentWidth = 20
+    self.rowHeight = 25
+    self.iconSize = 16
+    self.font = love.graphics.getFont()
+    self.scrollBarEnable = false
+    self.selectedNode = nil
+    self.highlightedNode = nil
+    self.icons = {} -- Table to store loaded icons
+    self.stateIcons = {} -- Table to store state-specific icons
+end
+
+function TreeView:setLeafIcon(leaf_icon)
+    self.leaf_icon = leaf_icon
+    self.icons['leaf_icon'] = leaf_icon
+end
+
+function TreeView:setGroupIcon(fold_icon, expanded_icon)
+    self.fold_icon = fold_icon
+    self.expanded_icon = expanded_icon
+
+    self.icons['fold_icon'] = fold_icon
+end
+
+
+function TreeView:addNode(parentNode, label)
+    local newNode = {
+        label = label,
+        children = {},
+        expanded = false,
+        state = "normal",
+    }
+    table.insert(parentNode.children, newNode)
+    return newNode
+end
+
+-- function TreeView:loadNodeIcons(node)
+--     if Object:typeof(node.icon:typeOf('Drawable')) then
+--         -- Single icon for all states
+--         if not self.icons[node.icon] then
+--             self.icons[node.icon] = node
+--         end
+--     elseif type(node.icon) == "table" then
+--         -- Multiple icons for different states
+--         for state, img_icon in pairs(node.icon) do
+--             if not self.stateIcons[state] then
+--                 self.stateIcons[state] = {}
+--             end
+--             if not self.stateIcons[state][iconPath] then
+--                 self.stateIcons[state][iconPath] =node.icon
+--             end
+--         end
+--     end
+-- end
+
+function TreeView:setNodeState(node, state)
+    if node.states and table.contains(node.states, state) then
+        node.state = state
+    end
+end
+
+function TreeView:drawSelf()
+    love.graphics.setColor(0.9, 0.9, 0.9)
+    love.graphics.rectangle("fill", 0, 0, self.width, self.height)
+    
+    self:drawNode(self.root, 0, 0)
+end
+
+function TreeView:drawNode(node, level, y)
+    if y + self.rowHeight < self.scrollOffset.y then
+        return y + self.rowHeight
+    elseif y > self.scrollOffset.y + self.height then
+        return y
+    end
+
+    local x = level * self.indentWidth - self.scrollOffset.x
+    local nodeY = y - self.scrollOffset.y
+
+    -- Draw node background if selected or highlighted
+    if node == self.selectedNode then
+        love.graphics.setColor(0.7, 0.7, 1)
+        love.graphics.rectangle("fill", 0, nodeY, self.width, self.rowHeight)
+    elseif node == self.highlightedNode then
+        love.graphics.setColor(0.8, 0.8, 0.9)
+        love.graphics.rectangle("fill", 0, nodeY, self.width, self.rowHeight)
+    end
+
+    -- Draw expand/collapse icon
+    love.graphics.setColor(0, 0, 0)
+    if #node.children > 0 then
+        if node.expanded then
+            node.icon = self.fold_icon 
+            if node.icon == nil then
+                love.graphics.printf("-", x, nodeY, self.indentWidth, "center")
+            end
+        else
+            node.icon = self.expanded_icon
+            if node.icon == nil then
+                love.graphics.printf("+", x, nodeY, self.indentWidth, "center")
+            end
+        end
+    else
+        node.icon = self.leaf_icon
+    end
+    -- Draw node icon
+
+    if node.icon then
+        love.graphics.setColor(1, 1, 1)
+        love.graphics.draw(node.icon, x + self.indentWidth, nodeY + (self.rowHeight - self.iconSize) / 2, 0, self.iconSize / node.icon:getWidth(), self.iconSize / node.icon:getHeight())
+    end
+
+    -- Draw node label
+    love.graphics.setColor(0, 0, 0)
+    love.graphics.printf(node.label, x + self.indentWidth + self.iconSize + 5, nodeY + 5, self.width - x - self.indentWidth - self.iconSize - 5, "left")
+
+    y = y + self.rowHeight
+
+    if node.expanded then
+        for _, child in ipairs(node.children) do
+            y = self:drawNode(child, level + 1, y)
+        end
+    end
+
+    return y
+end
+
+
+function TreeView:onMousePressed(x, y, button)
+    local nodeY = 0
+    self:handleNodeClick(self.root, 0, nodeY, x, y, button)
+end
+
+function TreeView:handleNodeClick(node, level, y, clickX, clickY, button)
+    if y + self.rowHeight < self.scrollOffset.y then
+        return y + self.rowHeight
+    elseif y > self.scrollOffset.y + self.height then
+        return y
+    end
+
+    local x = level * self.indentWidth - self.scrollOffset.x
+    local nodeY = y - self.scrollOffset.y
+
+    if clickY >= nodeY and clickY < nodeY + self.rowHeight then
+        if #node.children > 0 then
+            node.expanded = not node.expanded
+        end
+        self.selectedNode = node
+        if self.onNodeSelected then
+            self.onNodeSelected(node)
+        end
+    end
+
+    y = y + self.rowHeight
+
+    if node.expanded then
+        for _, child in ipairs(node.children) do
+            y = self:handleNodeClick(child, level + 1, y, clickX, clickY, button)
+        end
+    end
+
+    return y
+end
+
+function TreeView:onMouseMoved(x, y, dx, dy)
+    local nodeY = 0
+    self.highlightedNode = nil
+    self:handleNodeHover(self.root, 0, nodeY, x, y)
+end
+
+function TreeView:handleNodeHover(node, level, y, hoverX, hoverY)
+    if y + self.rowHeight < self.scrollOffset.y then
+        return y + self.rowHeight
+    elseif y > self.scrollOffset.y + self.height then
+        return y
+    end
+
+    local nodeY = y - self.scrollOffset.y
+
+    if hoverY >= nodeY and hoverY < nodeY + self.rowHeight then
+        self.highlightedNode = node
+    end
+
+    y = y + self.rowHeight
+
+    if node.expanded then
+        for _, child in ipairs(node.children) do
+            y = self:handleNodeHover(child, level + 1, y, hoverX, hoverY)
+        end
+    end
+
+    return y
+end
+
+-- Utility function to check if a table contains a value
+function table.contains(table, element)
+    for _, value in pairs(table) do
+        if value == element then
+            return true
+        end
+    end
+    return false
+end
+
 -- Main GUI table
 local GUI = {
     GUIElement = GUIElement,
@@ -1243,6 +1457,7 @@ local GUI = {
     OptionSelect = OptionSelect,
     ProgressBar = ProgressBar,
     Popup = Popup,
+    TreeView = TreeView,
     -- ScrollView = ScrollView
     -- Add other GUI elements here as they are implemented
 }
