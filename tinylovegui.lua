@@ -125,6 +125,11 @@ function GUIElement:init(x, y, width, height)
     self.focused = false
     self.tag = ""
 
+    -- content
+    self.content_size_changed = false
+    self.content_width = 0
+    self.content_height = 0
+
     -- Scrolling properties
     self.scrollOffset = {x = 0, y = 0}
     self.scrollSpeed = 20
@@ -137,7 +142,7 @@ function GUIElement:init(x, y, width, height)
 end
 
 function GUIElement:updateScrollBars()
-    local contentWidth, contentHeight = self:getContentDimensions()
+    local contentWidth, contentHeight = self.content_width, self.content_height
 
     self.scrollBarVisible.x = contentWidth > self.width
     self.scrollBarVisible.y = contentHeight > self.height
@@ -155,15 +160,6 @@ function GUIElement:updateScrollBars()
     else
         self.scrollOffset.y = 0
     end
-end
-
-function GUIElement:getContentDimensions()
-    local maxWidth, maxHeight = 0, 0
-    for _, child in ipairs(self.children) do
-        maxWidth = math.max(maxWidth, child.x + child.width)
-        maxHeight = math.max(maxHeight, child.y + child.height)
-    end
-    return maxWidth, maxHeight
 end
 
 function GUIElement:draw()
@@ -215,7 +211,7 @@ function GUIElement:drawScrollBars()
         love.graphics.setColor(0.8, 0.8, 0.8)
         love.graphics.rectangle("fill", self.width - self.scrollBarWidth, 0, self.scrollBarWidth, self.height)
         
-        local contentHeight = select(2, self:getContentDimensions())
+        local contentHeight = self.content_height
         local scrollBarHeight = (self.height / contentHeight) * self.height
         local scrollBarY = (self.scrollOffset.y / (contentHeight - self.height)) * (self.height - scrollBarHeight)
         
@@ -227,7 +223,7 @@ function GUIElement:drawScrollBars()
         love.graphics.setColor(0.8, 0.8, 0.8)
         love.graphics.rectangle("fill", 0, self.height - self.scrollBarWidth, self.width, self.scrollBarWidth)
         
-        local contentWidth = select(1, self:getContentDimensions())
+        local contentWidth = self.content_width
         local scrollBarWidth = (self.width / contentWidth) * self.width
         local scrollBarX = (self.scrollOffset.x / (contentWidth - self.width)) * (self.width - scrollBarWidth)
         
@@ -251,6 +247,8 @@ function GUIElement:update(dt)
     end
     for _, child in ipairs(self.children) do
         child:update(dt)
+        self.content_width = math.max(self.width, child.width)
+        self.content_height = math.max(self.height, child.height)
     end
 end
 
@@ -287,39 +285,46 @@ end
 
 function GUIElement:mousepressed(x, y, button)
     if not self.visible or not self.enabled then return false end
-    local localX, localY = x - self.x + self.scrollOffset.x, y - self.y + self.scrollOffset.y
+    local localX, localY = x - self.x, y - self.y
+    local contentLocalX, contentLocalY = localX + self.scrollOffset.x, localY + self.scrollOffset.y
 
-    if self.scrollBarEnable then
-        if button == 1 then
-            if self.scrollBarVisible.y and x > self.width - self.scrollBarWidth then
-                self.scrollBarGrabbed.y = true
-                local contentHeight = select(2, self:getContentDimensions())
-                local scrollBarHeight = (self.height / contentHeight) * self.height
-                local scrollBarY = (self.scrollOffset.y / (contentHeight - self.height)) * (self.height - scrollBarHeight)
-                self.scrollBarClickOffset.y = y - scrollBarY
-                return true
-            elseif self.scrollBarVisible.x and y > self.height - self.scrollBarWidth then
-                self.scrollBarGrabbed.x = true
-                local contentWidth = select(1, self:getContentDimensions())
-                local scrollBarWidth = (self.width / contentWidth) * self.width
-                local scrollBarX = (self.scrollOffset.x / (contentWidth - self.width)) * (self.width - scrollBarWidth)
-                self.scrollBarClickOffset.x = x - scrollBarX
-                return true
-            end
-        end
+
+    if self.tag == 'button2' then
+        print("button2")
     end
 
     if self:containsPoint(localX, localY) then
+
+        if self.scrollBarEnable then
+            if button == 1 then
+                if self.scrollBarVisible.y and x > self.width - self.scrollBarWidth then
+                    self.scrollBarGrabbed.y = true
+                    local contentHeight = self.content_height
+                    local scrollBarHeight = (self.height / contentHeight) * self.height
+                    local scrollBarY = (self.scrollOffset.y / (contentHeight - self.height)) * (self.height - scrollBarHeight)
+                    self.scrollBarClickOffset.y = y - scrollBarY
+                    return true
+                elseif self.scrollBarVisible.x and y > self.height - self.scrollBarWidth then
+                    self.scrollBarGrabbed.x = true
+                    local contentWidth = self.content_width
+                    local scrollBarWidth = (self.width / contentWidth) * self.width
+                    local scrollBarX = (self.scrollOffset.x / (contentWidth - self.width)) * (self.width - scrollBarWidth)
+                    self.scrollBarClickOffset.x = x - scrollBarX
+                    return true
+                end
+            end
+        end
+
+        for i = #self.children, 1, -1 do
+            if self.children[i]:mousepressed(contentLocalX, contentLocalY, button) then
+                return true
+            end
+        end
         -- Set focus to this element if it's clickable
         if self.focusable then
             self:setFocus()
         end
-
-        for i = #self.children, 1, -1 do
-            if self.children[i]:mousepressed(localX, localY, button) then
-                return true
-            end
-        end
+        
         self:_stateChanged(GUIElement.State.PRESSED)
 
         return self:onMousePressed(localX, localY, button)
@@ -333,18 +338,23 @@ end
 
 function GUIElement:mousereleased(x, y, button)
     if not self.visible or not self.enabled then return false end
-        local localX, localY = x - self.x + self.scrollOffset.x, y - self.y + self.scrollOffset.y
+    local localX, localY = x - self.x, y - self.y
+    local contentLocalX, contentLocalY = localX + self.scrollOffset.x, localY + self.scrollOffset.y
 
-        if self.scrollBarEnable then
-            if button == 1 then
-                self.scrollBarGrabbed.x = false
-                self.scrollBarGrabbed.y = false
-            end
-        end
+    if self.tag == 'button2' then
+        print("button2")
+    end
+
+    if self.scrollBarEnable then
+        if button == 1 then
+            self.scrollBarGrabbed.x = false
+            self.scrollBarGrabbed.y = false
+         end
+    end
 
     if self:containsPoint(localX, localY) then
         for i = #self.children, 1, -1 do
-            if self.children[i]:mousereleased(localX, localY, button) then
+            if self.children[i]:mousereleased(contentLocalX, contentLocalY, button) then
                 return true
             end
         end
@@ -361,13 +371,14 @@ function GUIElement:mousereleased(x, y, button)
         end
     end
 
-    self:onMouseReleased(localX, localY, button)
+    self:onMouseReleased(localX, localX, button)
     return false
 end
 
 function GUIElement:mousemoved(x, y, dx, dy)
     if not self.visible or not self.enabled then return false end
-    local localX, localY = x - self.x + self.scrollOffset.x, y - self.y + self.scrollOffset.y
+    local localX, localY = x - self.x, y - self.y
+    local contentLocalX, contentLocalY = localX + self.scrollOffset.x, localY + self.scrollOffset.y
     local localDX, localDY = dx, dy
 
     if self.scrollBarEnable then
@@ -381,31 +392,32 @@ function GUIElement:mousemoved(x, y, dx, dy)
     end
 
     local containsPoint = self:containsPoint(localX, localY)
-    local childHandled = false
-
-    for i = #self.children, 1, -1 do
-        if self.children[i]:mousemoved(localX, localY, localDX, localDY) then
-            childHandled = true
-            break
-        end
-    end
 
     if containsPoint then
-        if not childHandled and self.state ~= GUIElement.State.PRESSED then
+        if self.focusable then
+            self:setFocus()
+        end
+        for i = #self.children, 1, -1 do
+            if self.children[i]:mousemoved(contentLocalX, contentLocalY, localDX, localDY) then
+                return
+            end
+        end
+
+        if self.state ~= GUIElement.State.PRESSED then
             self:_stateChanged(GUIElement.State.HOVER)
         end
-        return self:onMouseMoved(localX, localY, localDX, localDY) or childHandled
+        return self:onMouseMoved(localX, localY, localDX, localDY)
     else
         if self.state == GUIElement.State.HOVER then
             self:_stateChanged(GUIElement.State.NORMAL)
         end
     end
 
-    return childHandled
+    return false
 end
 
 function GUIElement:updateVerticalScrollFromMouse(y)
-    local contentHeight = select(2, self:getContentDimensions())
+    local contentHeight = self.content_height
     local scrollBarHeight = (self.height / contentHeight) * self.height
     local scrollableHeight = self.height - scrollBarHeight
     
@@ -418,7 +430,7 @@ function GUIElement:updateVerticalScrollFromMouse(y)
 end
 
 function GUIElement:updateHorizontalScrollFromMouse(x)
-    local contentWidth = select(1, self:getContentDimensions())
+    local contentWidth = self.content_width
     local scrollBarWidth = (self.width / contentWidth) * self.width
     local scrollableWidth = self.width - scrollBarWidth
     
@@ -440,7 +452,7 @@ function GUIElement:wheelmoved(x, y)
 
     if self.focused then
         if self.scrollBarVisible.y then
-            self.scrollOffset.y = math.max(0, math.min(self.scrollOffset.y - y * self.scrollSpeed, select(2, self:getContentDimensions()) - self.height))
+            self.scrollOffset.y = math.max(0, math.min(self.scrollOffset.y - y * self.scrollSpeed, self.content_height - self.height))
             return true
         end
         return self:onWheelMoved(x, y)
@@ -451,8 +463,16 @@ function GUIElement:getGlobalPosition()
     local x, y = self.x, self.y
     local parent = self.parent
     while parent do
-        x = x + parent.x
-        y = y + parent.y
+
+        local scrollOffset = {x=0,y=0}
+        if parent.scrollBarEnable == true then
+            scrollOffset = parent.scrollOffset
+        end
+
+        x = x + parent.x - scrollOffset.x
+        y = y + parent.y - scrollOffset.y
+
+
         parent = parent.parent
     end
     return x, y
@@ -515,10 +535,18 @@ function GUIElement:textinput(text)
             return true
         end
     end
+
     return self:onTextInput(text)
 end
 
+--
+function GUIElement:containsVisiblePoint(x, y)
+
+end
+
 function GUIElement:containsPoint(x, y)
+    local contain = x >= 0 and x < self.width and y >= 0 and y < self.height
+    print(self.tag .. " isContainsPoint (" .. tostring(x) .. "," .. tostring(y) .. ")  " .. tostring(contain))
     return x >= 0 and x < self.width and y >= 0 and y < self.height
 end
 
@@ -605,39 +633,6 @@ function Button:drawSelf()
     love.graphics.printf(self.text, 0, self.height / 2 - love.graphics.getFont():getHeight() / 2, self.width, "center")
 end
 
--- function Button:onMousePressed(x, y, button)
---     if button == 1 then
---         self.state = "pressed"
---         return true
---     end
---     return false
--- end
-
--- function Button:onMouseReleased(x, y, button)
---     if button == 1 and self.state == "pressed" then
---         self.onClick()
---         self.state = "hover"
---         return true
---     end
---     return false
--- end
-
--- function Button:onMouseMoved(x, y, dx, dy)
---     if self:containsPoint(x, y) then
---         if self.state ~= "pressed" then
---             self.state = "hover"
---         end
---     else
---         self.state = "normal"
---     end
---     return true
--- end
-
--- function Button:mousemoved(x, y, dx, dy)
---     local localX, localY = x - self.x, y - self.y
---     self:onMouseMoved(localX, localY, dx, dy)
---     return self:containsPoint(localX, localY)
--- end
 
 -- Slider
 local Slider = GUIElement:extend()
@@ -943,24 +938,6 @@ function TextArea:wrapText(text, limit)
     return wrappedText
 end
 
-function TextArea:getGlobalPosition()
-    local x, y = self.x, self.y
-    local parent = self.parent
-    while parent do
-
-        local scrollOffset = {x=0,y=0}
-        if parent.scrollBarEnable == true then
-            scrollOffset = parent.scrollOffset
-        end
-
-        x = x + parent.x - scrollOffset.x
-        y = y + parent.y - scrollOffset.y
-
-
-        parent = parent.parent
-    end
-    return x, y
-end
 
 function TextArea:getCursorPosition()
     local textBeforeCursor = self.text:sub(1, self.cursorPosition - 1)
@@ -1245,8 +1222,6 @@ function Popup:setTextColor(color)
     self.textColor = color
 end
 
-
-
 local TreeView = GUIElement:extend()
 
 -- node {label = "Root", children = {}, expanded = true, icon = nil, state = "normal"}
@@ -1292,25 +1267,6 @@ function TreeView:addNode(parentNode, label)
     return newNode
 end
 
--- function TreeView:loadNodeIcons(node)
---     if Object:typeof(node.icon:typeOf('Drawable')) then
---         -- Single icon for all states
---         if not self.icons[node.icon] then
---             self.icons[node.icon] = node
---         end
---     elseif type(node.icon) == "table" then
---         -- Multiple icons for different states
---         for state, img_icon in pairs(node.icon) do
---             if not self.stateIcons[state] then
---                 self.stateIcons[state] = {}
---             end
---             if not self.stateIcons[state][iconPath] then
---                 self.stateIcons[state][iconPath] =node.icon
---             end
---         end
---     end
--- end
-
 function TreeView:setNodeState(node, state)
     if node.states and table.contains(node.states, state) then
         node.state = state
@@ -1321,7 +1277,7 @@ function TreeView:drawSelf()
     love.graphics.setColor(0.9, 0.9, 0.9)
     love.graphics.rectangle("fill", 0, 0, self.width, self.height)
     
-    self:drawNode(self.root, 0, 0)
+    self.height = math.max(self:drawNode(self.root, 0, 0), self.height)
 end
 
 function TreeView:drawNode(node, level, y)

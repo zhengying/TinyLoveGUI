@@ -25,12 +25,12 @@ function love.load()
     mainLayout.tag = "mainLayout"
     rootView:addChild(mainLayout)
     
-    -- Create a row layout for buttons
+    --Create a row layout for buttons
     local buttonRow = GUI.RowLayout(0, 0, 760, 50)
     buttonRow.tag = "buttonRow"
     mainLayout:addChild(buttonRow)
     
-    -- Add buttons to the row layout
+    --Add buttons to the row layout
     local button1 = GUI.Button(0, 0, 150, 40, "Click Me!") 
     button1.tag = "button1"
     button1.onClick = function()
@@ -50,7 +50,7 @@ function love.load()
     end
     buttonRow:addChild(button2)
     
-    -- Add a slider
+    --Add a slider
     local slider = GUI.Slider(0, 0, 600, 30, 0, 100, sliderValue)
     slider.tag = "slider"
     slider.onChange = function(value)
@@ -72,10 +72,10 @@ function love.load()
     end
     mainLayout:addChild(optionSelect)
     
-    -- Create a grid-like layout using nested row and column layouts
+    --Create a grid-like layout using nested row and column layouts
     local gridLayout = GUI.ColumnLayout(0, 0, 760, 400)
     gridLayout.tag = "gridLayout"
-    --mainLayout:addChild(gridLayout)
+    mainLayout:addChild(gridLayout)
     
     for i = 1, 3 do
         local row = GUI.RowLayout(0, 0, 760, 88)
@@ -93,12 +93,18 @@ function love.load()
         end
     end
 
-    -- Add popup
+    --Add popup
     popup = GUI.Popup(love.graphics.getWidth() / 2 - 100, love.graphics.getHeight() - 100, 200, 50)
     popup.tag = 'popup'
     rootView:addChild(popup)
 
-    local treeView = GUI.TreeView(10, 10, 200, 300)  -- x, y, width, height
+    local treeScrollView = GUI.GUIElement(0,0,200,100)
+    treeScrollView.tag = "treeScrollView"
+    treeScrollView.scrollBarEnable = true
+    treeScrollView.focusable = true 
+    local treeView = GUI.TreeView(0, 0, 200, 300)  -- x, y, width, height
+    treeView.tag = "tree"
+    treeScrollView:addChild(treeView)
     treeView:setGroupIcon(icon_folder_opened, icon_folder)
     treeView:setLeafIcon(icon_file)
     local root = treeView.root
@@ -126,7 +132,7 @@ function love.load()
     end
     
     -- Add the treeView to your main GUI container
-    mainLayout:addChild(treeView)
+    rootView:addChild(treeScrollView)
 end
 
 function love.update(dt)
@@ -136,7 +142,6 @@ end
 function love.draw()
     love.graphics.setBackgroundColor(0.2, 0.4, 0.4)
     rootView:draw()
-    print(tostring(rootView.scrollOffset.x), tostring(rootView.scrollOffset.y))
     
     -- Draw some text to show the current state
     love.graphics.setColor(1, 1, 1)
