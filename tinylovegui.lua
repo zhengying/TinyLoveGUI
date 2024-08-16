@@ -885,7 +885,6 @@ function TextArea:moveCursorVertically(direction)
     end
 end
 
-
 function TextArea:getCurrentLineAndColumn()
     local lines = self:getLines()
     local currentPosition = 0
