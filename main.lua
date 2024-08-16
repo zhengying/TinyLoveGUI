@@ -1,186 +1,227 @@
+local TinyLoveGUI = require('TinyLoveGUI')
+
+local GUIElement = TinyLoveGUI.GUIElement
+local ScrollView = TinyLoveGUI.ScrollView
+local Slider = TinyLoveGUI.Slider
+local Button = TinyLoveGUI.Button
+local OptionSelect = TinyLoveGUI.OptionSelect
+local FlowLayout = TinyLoveGUI.FlowLayout
+local TreeView, TreeNode = unpack(TinyLoveGUI.TreeView)
+local PopupMessage = TinyLoveGUI.PopupMessage
+local ProgressBar = TinyLoveGUI.ProgressBar
+local TextField = TinyLoveGUI.TextField
+local PopupMenu = TinyLoveGUI.PopupMenu
+
 if os.getenv("LOCAL_LUA_DEBUGGER_VSCODE") == "1" then
     require("lldebugger").start()
 end
+local myProgressBar
+-- Example usage
+local function createGUI()
+    local w, h =  love.window.getMode()
+    local mainView = GUIElement(0, 0, w, h)
 
-local GUI = require "tinylovegui"  -- Make sure this points to your tinylovegui.lua file
-local icon_folder = love.graphics.newImage('assets/images/folder.png')
-local icon_folder_opened = love.graphics.newImage('assets/images/open-folder.png')
-local icon_file = love.graphics.newImage('assets/images/document.png')
+    local scrollView = ScrollView(350, 20, 380, 280)
+    local sliderValue = 0
 
-local rootView
-local clickCount = 0
-local sliderValue = 50
-local popup
-
-function love.load()
-    love.window.setMode(800, 600)
-    
-    rootView = GUI.GUIElement(0, 0, love.graphics.getWidth(), love.graphics.getHeight())
-    rootView.scrollBarEnable = true
-    rootView.tag = 'root'
-    
-    
-    -- Create a column layout for the main content
-    local mainLayout = GUI.ColumnLayout(100, 20, 760, 2560, 10)
-    mainLayout.tag = "mainLayout"
-    rootView:addChild(mainLayout)
-    
-    --Create a row layout for buttons
-    local buttonRow = GUI.RowLayout(0, 0, 760, 50)
-    buttonRow.tag = "buttonRow"
-    mainLayout:addChild(buttonRow)
-    
-    --Add buttons to the row layout
-    local button1 = GUI.Button(0, 0, 150, 40, "Click Me!") 
-    button1.tag = "button1"
-    button1.onClick = function()
-        clickCount = clickCount + 1
-        popup:show("Button 'Click Me!' clicked")
-        myProgressBar.value = math.min(myProgressBar.value + 5,100)
+    for i = 1, 10 do
+        local child = GUIElement(0, (i-1) * 60, 480, 50, {r=0.1,g=1,b=0.1})
+        scrollView:addChild(child)
     end
-    buttonRow:addChild(button1)
-    
-    local button2 = GUI.Button(0, 0, 150, 40, "Reset")
-    button2.tag = "button2"
-    button2.onClick = function()
-        clickCount = 0
-        sliderValue = 50
-        popup:show("Reset button clicked")
-        myProgressBar.value = 0
-    end
-    buttonRow:addChild(button2)
-    
-    --Add a slider
-    local slider = GUI.Slider(0, 0, 600, 30, 0, 100, sliderValue)
-    slider.tag = "slider"
-    slider.onChange = function(value)
-        sliderValue = value
-    end
-    mainLayout:addChild(slider)
 
-    textArea = GUI.TextArea(0, 0, 200, 100, "Hello, world!", true)
-    textArea.tag = "textArea"
-    mainLayout:addChild(textArea)
-    myProgressBar = GUI.ProgressBar(0, 0, 200, 50, 0, 100)
-    myProgressBar.tag = "myProgressBar"
-    mainLayout:addChild(myProgressBar)
+   -- mainView:addChild(scrollView)
 
-    local optionSelect = GUI.OptionSelect(0, 0, 100, 30, {"Option 1", "Option 2", "Option 3"})
+    local scrollView1 = ScrollView(20, 20, 380, 280)
+
+    for i = 1, 10 do
+        local child = GUIElement(0, (i-1) * 60, 480, 50, {r=1,g=0.2,b=0.1})
+        scrollView1:addChild(child)
+    end
+
+    -- mainView:addChild(scrollView1)
+
+    local simpleButton = Button(0, 0, 200, 50, {
+        text = "Click me!",
+        normalColor = {0.2, 0.6, 0.8, 1},
+        hoverColor = {0.3, 0.7, 0.9, 1},
+        pressedColor = {0.1, 0.5, 0.7, 1},
+        onClick = function()
+            PopupMessage.show(mainView, "Hello, World!", 3)  -- Shows for 5 seconds
+            myProgressBar.value = math.min(myProgressBar.value + 5,100)
+        end
+    })
+    local simpleButton2 = Button(0, 0, 200, 50, {
+        text = "Cancel",
+        normalColor = {0.2, 0.6, 0.8, 1},
+        hoverColor = {0.3, 0.7, 0.9, 1},
+        pressedColor = {0.1, 0.5, 0.7, 1},
+        onClick = function()
+            print("Button clicked!")
+            myProgressBar.value = 0
+        end
+    })
+                                --x, y, width, height, bgcolor, padding, margin, alignment, direction
+    local rowLayout = FlowLayout(0, 300, nil, nil, {r=0.1,g=0.1,b=0.1}, 5, nil,FlowLayout.Alignment.START, FlowLayout.Direction.VERTICAL)
+    rowLayout:addChild(simpleButton)
+    rowLayout:addChild(simpleButton2)
+
+    local textField = TextField(0,0,80,30,{
+        maxLength = 16,
+        inputType = "number"
+    })
+
+
+    local textField1 = TextField(0,0,80,30,{
+        maxLength = 10,
+        customValidate = function(text)
+            -- Example: Only allow even numbers
+            local number = tonumber(text)
+            return number ~= nil and number % 2 == 0
+        end
+    })
+
+
+    textField.text = "1"
+    rowLayout:addChild(textField)
+    rowLayout:addChild(textField1)
+
+    local groupIcon_fold = love.graphics.newImage("assets/images/folder.png")
+    local groupIcon_open = love.graphics.newImage("assets/images/openfolder.png")
+    local leafIcon = love.graphics.newImage("assets/images/document.png")
+
+
+    mainView:addChild(rowLayout)
+    TreeView:setDefaultGroupIcon(groupIcon_fold, groupIcon_open)
+    TreeView:setDefaultLeafIcon(leafIcon)
+
+    local treeView = TreeView(150, 50, 300, 150)
+    
+    -- Adding nodes to the tree
+    local node1 = TreeNode("Node 1")
+    local node2 = TreeNode("Node 2")
+    local node3 = TreeNode("Node 3")
+    local node4 = TreeNode("Node 3")
+    local node5 = TreeNode("Node 3")
+
+
+    local node6 = TreeNode("Node 3")
+    local node7 = TreeNode("Node 3")
+    local node8 = TreeNode("Node 3")
+    local node9 = TreeNode("Node 3")
+    local node10 = TreeNode("Node 3")
+    local node11 = TreeNode("Node 3")
+    local node12 = TreeNode("Node 3")
+    local node13 = TreeNode("Node 3")
+    local node14 = TreeNode("Node 3")
+    local node15 = TreeNode("Node 3")
+    local node16 = TreeNode("Node 3")
+    local node17 = TreeNode("Node 3")
+    
+    treeView.root:addChild(node1)
+    treeView.root:addChild(node2)
+    treeView.root:addChild(node3)
+    treeView.root:addChild(node4)
+    treeView.root:addChild(node5)
+    treeView.root:addChild(node6)
+
+
+    node2:addChild(node7)
+    node2:addChild(node8)
+    node2:addChild(node9)
+    node2:addChild(node10)
+
+    node3:addChild(node11)
+    node3:addChild(node12)
+    node3:addChild(node13)
+    node3:addChild(node14)
+    node3:addChild(node15)
+    node3:addChild(node16)
+    node3:addChild(node17)
+
+    mainView:addChild(treeView)
+
+        --Add a slider
+        local slider = Slider(0, 0, 600, 30, 0, 100, sliderValue)
+        slider.tag = "slider"
+        slider.onChange = function(value)
+            sliderValue = value
+        end
+        
+        mainView:addChild(slider)
+
+
+        myProgressBar = ProgressBar(0, 0, 200, 50, 0, 100)
+        myProgressBar.tag = "myProgressBar"
+        mainView:addChild(myProgressBar)
+
+
+
+    local optionSelect = OptionSelect(20, 100, 100, 30, {"Option 1", "Option 2", "Option 3", "Option 4", "Option 5", "Option 6","Option 1", "Option 2", "Option 3", "Option 4", "Option 5", "Option 6"})
     optionSelect.tag = "optionSelect"
     optionSelect.onChange = function(selectedOption, selectedIndex)
     print("Selected: " .. selectedOption .. " at index " .. selectedIndex)
     end
-    mainLayout:addChild(optionSelect)
-    
-    --Create a grid-like layout using nested row and column layouts
-    local gridLayout = GUI.ColumnLayout(0, 0, 760, 400)
-    gridLayout.tag = "gridLayout"
-    mainLayout:addChild(gridLayout)
-    
-    for i = 1, 3 do
-        local row = GUI.RowLayout(0, 0, 760, 88)
-        row.tag = "GridRowLayout_" .. tostring(i)
-        gridLayout:addChild(row)
-        
-        for j = 1, 3 do
-            local cellNumber = (i-1)*3 + j
-            local cell = GUI.Button(0, 0, 180, 80, "Cell " .. cellNumber)
-            cell.tag = "gridButton_" .. tostring(cellNumber)
-            cell.onClick = function()
-                popup:show("Cell " .. cellNumber .. " clicked")
-            end
-            row:addChild(cell)
-        end
-    end
+    mainView:addChild(optionSelect)
+    local menu = PopupMenu({
+        {text = "Copy", action = function() print("Copy") end},
+        {text = "Paste", action = function() print("Paste") end},
+        {text = "More Options", submenu = {
+            {text = "Option 1", action = function() print("Option 1") end},
+            {text = "Option 2", action = function() print("Option 2") end},
+        }},
+    })
+    mainView:addChild(menu)
 
-    --Add popup
-    popup = GUI.Popup(love.graphics.getWidth() / 2 - 100, love.graphics.getHeight() - 100, 200, 50)
-    popup.tag = 'popup'
-    rootView:addChild(popup)
+    -- Add a right-click handler to mainView
+    mainView.onRightClick = function(self, x, y)
+        menu:show(x, y)
+    end 
+    -- In your main update/draw loop:
 
-    local treeScrollView = GUI.GUIElement(0,0,200,100)
-    treeScrollView.tag = "treeScrollView"
-    treeScrollView.scrollBarEnable = true
-    treeScrollView.focusable = true 
-    local treeView = GUI.TreeView(0, 0, 200, 300)  -- x, y, width, height
-    treeView.tag = "tree"
-    treeScrollView:addChild(treeView)
-    treeView:setGroupIcon(icon_folder_opened, icon_folder)
-    treeView:setLeafIcon(icon_file)
-    local root = treeView.root
-    
-    -- Node with a single icon for all states
-    local node1 = treeView:addNode(root, "Node 1")
-    
-    -- Node with state-specific icons
-    local node2 = treeView:addNode(root, "Node 2")
-    
-    local node1_1 = treeView:addNode(node1, "Node 1.1")
-    local node2_1 = treeView:addNode(node2, "Node 2.1")
-    local node2_2 = treeView:addNode(node2, "Node 2.2")
+    return mainView
 
-    -- Node with state-specific icons
-    local node3 = treeView:addNode(root, "Node 3")
-    
-    local node1_1 = treeView:addNode(node3, "Node 3.1")
-    local node2_1 = treeView:addNode(node3, "Node 3.1")
-    local node2_2 = treeView:addNode(node3, "Node 3.2")
-    
-    -- Add a callback for node selection
-    treeView.onNodeSelected = function(node)
-        print("Selected node: " .. node.label)
-    end
-    
-    -- Add the treeView to your main GUI container
-    rootView:addChild(treeScrollView)
+end
+
+-- LÖVE callbacks
+local gui
+
+function love.load()
+    love.window.setMode(1024, 768,{highdpi=true})
+    gui = createGUI()
 end
 
 function love.update(dt)
-    rootView:update(dt)
+    gui:update(dt)
 end
 
 function love.draw()
-    love.graphics.setBackgroundColor(0.2, 0.4, 0.4)
-    rootView:draw()
-    
-    -- Draw some text to show the current state
-    love.graphics.setColor(1, 1, 1)
-    love.graphics.print("Click Count: " .. clickCount, 20, 580)
-    love.graphics.print("Slider Value: " .. string.format("%.2f", sliderValue), 200, 580)
-end
-
-function love.mousepressed(x, y, button)
-    -- if GUI.handleOverlayMouseEvent('mousepressed', x, y, button) then
-    --     return  -- Stop processing if an overlay item handled the event
-    -- end
-    -- Handle regular GUI mousepressed events
-    rootView:mousepressed(x, y, button)
+    gui:draw()
 end
 
 function love.mousemoved(x, y, dx, dy)
-    -- if GUI.handleOverlayMouseEvent('mousemoved', x, y, dx, dy) then
-    --     return  -- Stop processing if an overlay item handled the event
-    -- end
-    -- Handle regular GUI mousemoved events
-    rootView:mousemoved(x, y, dx, dy)
+    gui:mousemoved(x, y, dx, dy)
+end
+
+function love.wheelmoved(x, y)
+    gui:wheelmoved(x, y)
+end
+
+function love.mousepressed(x, y, button)
+    gui:mousepressed(x, y, button)
 end
 
 function love.mousereleased(x, y, button)
-    -- if GUI.handleOverlayMouseEvent('mousereleased', x, y, button) then
-    --     return  -- Stop processing if an overlay item handled the event
-    -- end
-    -- Handle regular GUI mousereleased events
-    rootView:mousereleased(x, y, button)
+    gui:mousereleased(x, y, button)
 end
 
 function love.keypressed(key)
-    textArea:keypressed(key)
-end
-  
-function love.textinput(text)
-    textArea:textinput(text)
+    gui:keypressed(key)
 end
 
-function love.wheelmoved( x, y )
-    rootView:wheelmoved(x, y)
+function love.keyreleased(key)
+    gui:keyreleased(key)
 end
+
+function love.textinput(text)
+    gui:textinput(text)
+end 
