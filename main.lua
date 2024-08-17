@@ -140,19 +140,19 @@ local function createGUI()
 
     mainView:addChild(treeView)
 
-        --Add a slider
-        local slider = Slider(0, 0, 600, 30, 0, 100, sliderValue)
-        slider.tag = "slider"
-        slider.onChange = function(value)
-            sliderValue = value
-        end
-        
-        mainView:addChild(slider)
+    --Add a slider
+    local slider = Slider(0, 0, 600, 30, 0, 100, sliderValue)
+    slider.tag = "slider"
+    slider.onChange = function(value)
+        sliderValue = value
+    end
+    
+    mainView:addChild(slider)
 
 
-        myProgressBar = ProgressBar(0, 0, 200, 50, 0, 100)
-        myProgressBar.tag = "myProgressBar"
-        mainView:addChild(myProgressBar)
+    myProgressBar = ProgressBar(0, 0, 200, 50, 0, 100)
+    myProgressBar.tag = "myProgressBar"
+    mainView:addChild(myProgressBar)
 
 
 
