@@ -37,8 +37,8 @@ local function updateContentSize(self)
     local maxTextWidth = 0
     local totalHeight = 0
 
-    for _, node in ipairs(self.root.children) do
-        local textWidth = font:getWidth(node.data)
+    for _, node in ipairs(self.root.groupStatus.children) do
+        local textWidth = font:getWidth(node.title)
         if textWidth > maxTextWidth then
             maxTextWidth = textWidth
         end
@@ -52,9 +52,8 @@ local function updateContentSize(self)
     self.height = math.max(self.minHeight, math.min(contentHeight, self.maxHeight))
 end
 
-
 function PopupMenu:setItems(items)
-    self.root.children = {}
+    self.root.groupStatus.children = {}
     for _, item in ipairs(items) do
         self:addItem(item)
     end
@@ -62,7 +61,7 @@ function PopupMenu:setItems(items)
 end
 
 function PopupMenu:addItem(item)
-    local node = TreeNode(item)
+    local node = TreeNode(item.text, item)
     node.action = item.action
     self.root:addChild(node)
     if item.submenu then
@@ -73,7 +72,6 @@ function PopupMenu:addItem(item)
     end
     return node
 end
-
 
 function PopupMenu:show(x, y)
     self.x = x
@@ -100,29 +98,29 @@ function PopupMenu:draw()
     PopupMenu.super.draw(self)
 end
 
-function PopupMenu:handleInput(event)
-    if not self.visible then return false end
+-- function PopupMenu:handleInput(event)
+--     if not self.visible then return false end
     
-    if event.type == EventType.MOUSE_PRESSED or event.type == EventType.TOUCH_PRESSED then
-        local handled = PopupMenu.super.handleInput(self, event)
-        if handled and self.selectedNode and self.selectedNode.action then
-            self.selectedNode.action()
-            if self.autoClose then
-                self:hide()
-            else
-                self.selectedNode = nil  -- Clear selection after action
-            end
-        elseif self.autoClose and not handled then
-            self:hide()
-        end
-        return handled
-    elseif event.type == EventType.MOUSE_MOVED then
-        -- Clear selection on mouse move
-        self.selectedNode = nil
-        return PopupMenu.super.handleInput(self, event)
-    else
-        return PopupMenu.super.handleInput(self, event)
-    end
-end
+--     if event.type == EventType.MOUSE_PRESSED or event.type == EventType.TOUCH_PRESSED then
+--         local handled = PopupMenu.super.handleInput(self, event)
+--         if handled and self.selectedNode and self.selectedNode.action then
+--             self.selectedNode.action()
+--             if self.autoClose then
+--                 self:hide()
+--             else
+--                 self.selectedNode = nil  -- Clear selection after action
+--             end
+--         elseif self.autoClose and not handled then
+--             self:hide()
+--         end
+--         return handled
+--     elseif event.type == EventType.MOUSE_MOVED then
+--         -- Clear selection on mouse move
+--         self.selectedNode = nil
+--         return PopupMenu.super.handleInput(self, event)
+--     else
+--         return PopupMenu.super.handleInput(self, event)
+--     end
+-- end
 
 return PopupMenu

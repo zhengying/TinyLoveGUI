@@ -50,14 +50,15 @@ function TreeNode:nextID()
     return TreeNode.id_max
 end
 
-function TreeNode:init(data)
+function TreeNode:init(title, data)
+    self.title = title
     self.data = data
     self.id = self:nextID()
     self.groupStatus = nil
 end
 
 
-function TreeNode:setGroupStatus(isExpanded)
+function TreeNode:setAsGroup(isExpanded)
     if not self.groupStatus then
         self.groupStatus = {
             children = {},
@@ -68,13 +69,19 @@ function TreeNode:setGroupStatus(isExpanded)
     end
 end
 
+function TreeNode:setExpanded(isExpanded)
+    if self:isGroup() then
+        self.groupStatus.isExpanded = isExpanded
+    end
+end
+
 function TreeNode:isGroup()
     return self.groupStatus ~= nil
 end
 
 function TreeNode:addChild(child)
     if not self:isGroup() then
-        self:setGroupStatus(false)
+        self:setAsGroup(false)
     end
     table.insert(self.groupStatus.children, child)
 end
@@ -87,7 +94,8 @@ end
 
 function TreeView:init(x, y, width, height)
     TreeView.super.init(self, x, y, width, height)
-    self.root = TreeNode("Root")
+    self.root = TreeNode("Root", {})
+    self.root:setAsGroup(true)
     self.selectedNode = nil
     self.hoveredNode = nil
     self.tag = 'TreeView'
@@ -192,8 +200,13 @@ function TreeView:drawNode(node, depth, y)
         else
             love.graphics.setColor(self.style.fontColor)
         end
+
         love.graphics.setFont(self.style.font)
-        love.graphics.print(node.data, x, y + (self.style.nodeHeight - self.style.font:getHeight()) / 2)
+        love.graphics.print(node.title, x, y + (self.style.nodeHeight - self.style.font:getHeight()) / 2)
+
+        if self.draw_node_extra then
+            self.draw_node_extra(node,0, y,self.contentWidth, self.style.nodeHeight, isSelected)
+        end
 
         -- Draw line
         love.graphics.setColor(self.style.lineColor)
@@ -371,7 +384,7 @@ function TreeView:calculateContentWidth(node, depth)
         return maxWidth
     end
 
-    local nodeWidth = depth * self.style.indentSize + self.style.marginLeft + self.style.font:getWidth(node.data) + self.style.iconSize + 10
+    local nodeWidth = depth * self.style.indentSize + self.style.marginLeft + self.style.font:getWidth(node.title) + self.style.iconSize + 10
 
     if node:isGroup() and node.groupStatus.isExpanded then
         for _, child in ipairs(node.groupStatus.children) do
