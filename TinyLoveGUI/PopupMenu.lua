@@ -1,75 +1,81 @@
 local cwd = select(1, ...):match(".+%.") or ""
-local TreeView, TreeNode = unpack(require(cwd .. "TreeView"))
-local EventType = require(cwd .. "InputEventUtils").EventType
-local PopupMenu = TreeView:extend()
+local GUIElement = require(cwd .. "GUIElement")
+local InputEventUtils = require(cwd .. "InputEventUtils")
+local EventType = InputEventUtils.EventType
 
-function PopupMenu:init(items)
-    PopupMenu.super.init(self, 0, 0, 100, 100)  -- Initial size, will be adjusted
-    self.tag = 'PopupMenu'
+local PopupMenu = GUIElement:extend()
+
+-- TreeNode class (simplified for PopupMenu use)
+local MenuItem = Object:extend()
+
+function MenuItem:init(title, data)
+    self.title = title
+    self.data = data
+    self.groupStatus = nil
+end
+
+function MenuItem:setAsGroup(isExpanded)
+    self.groupStatus = {
+        children = {},
+        isExpanded = isExpanded or false
+    }
+end
+
+function MenuItem:isGroup()
+    return self.groupStatus ~= nil
+end
+
+function MenuItem:addChild(child)
+    if not self:isGroup() then
+        self:setAsGroup(false)
+    end
+    table.insert(self.groupStatus.children, child)
+end
+
+-- PopupMenu implementation
+function PopupMenu:init(x, y, width, height)
+    PopupMenu.super.init(self, x, y, width, height)
+    self.root = MenuItem("Root", {})
+    self.root:setAsGroup(true)
+    self.selectedNode = nil
+    self.hoveredNode = nil
+    self.popupStack = {}
     self.visible = false
-    self.autoClose = true
-    self.minWidth = 100
-    self.maxWidth = 300
-    self.minHeight = 30
-    self.maxHeight = 400
+    self.onSelect = nil
 
-
-    -- Override some style properties
-    self:setStyle({
-        bgColor = {0.95, 0.95, 0.95, 1},
-        hoverColor = {0.8, 0.8, 0.8, 1},
-        selectedColor = {0.7, 0.7, 0.7, 1},
-        borderColor = {0.7, 0.7, 0.7, 1},
+    -- Default style settings
+    self.style = {
+        bgColor = {0.9, 0.9, 0.9, 1},
+        font = love.graphics.newFont(12),
+        fontColor = {0.1, 0.1, 0.1, 1},
+        hoverColor = {0.8, 0.9, 1, 1},
+        selectedColor = {0.7, 0.8, 1, 1},
+        borderColor = {0.5, 0.5, 0.5, 1},
         borderWidth = 1,
-        nodeHeight = 30,
-        marginLeft = 10,
-        marginRight = 10,
-        marginTop = 5,
-        marginBottom = 5,
-        fontSize = 14
-    })
-
-    self:setItems(items)
+        itemHeight = 24,
+        paddingX = 10,
+        paddingY = 5,
+        --submenuIndicator = "▶"
+        submenuIndicator = ">"
+    }
 end
 
-local function updateContentSize(self)
-    local font = love.graphics.getFont()
-    local maxTextWidth = 0
-    local totalHeight = 0
-
-    for _, node in ipairs(self.root.groupStatus.children) do
-        local textWidth = font:getWidth(node.title)
-        if textWidth > maxTextWidth then
-            maxTextWidth = textWidth
-        end
-        totalHeight = totalHeight + self.style.nodeHeight
+function PopupMenu:setStyle(style)
+    for k, v in pairs(style) do
+        self.style[k] = v
     end
-
-    local contentWidth = maxTextWidth + self.style.marginLeft + self.style.marginRight
-    local contentHeight = totalHeight + self.style.marginTop + self.style.marginBottom
-
-    self.width = math.max(self.minWidth, math.min(contentWidth, self.maxWidth))
-    self.height = math.max(self.minHeight, math.min(contentHeight, self.maxHeight))
 end
 
-function PopupMenu:setItems(items)
-    self.root.groupStatus.children = {}
-    for _, item in ipairs(items) do
-        self:addItem(item)
-    end
-    updateContentSize(self)
-end
-
-function PopupMenu:addItem(item)
-    local node = TreeNode(item.text, item)
-    node.action = item.action
+function PopupMenu:addItem(title, data)
+    local node = MenuItem(title, data)
     self.root:addChild(node)
-    if item.submenu then
-        for _, subitem in ipairs(item.submenu) do
-            local subnode = self:addItem(subitem)
-            node:addChild(subnode)
-        end
-    end
+    return node
+end
+
+function PopupMenu:addSubmenu(title)
+    local node = MenuItem(title, {})
+    node:setAsGroup(false)
+    self.root:addChild(node)
     return node
 end
 
@@ -77,50 +83,188 @@ function PopupMenu:show(x, y)
     self.x = x
     self.y = y
     self.visible = true
-    updateContentSize(self)
-    -- Adjust position if menu goes off screen
-    local screenWidth, screenHeight = love.graphics.getDimensions()
-    if self.x + self.width > screenWidth then
-        self.x = screenWidth - self.width
-    end
-    if self.y + self.height > screenHeight then
-        self.y = screenHeight - self.height
-    end
+    self.popupStack = {}
 end
 
 function PopupMenu:hide()
     self.visible = false
-    self.selectedNode = nil  -- Clear selection when hiding
+    self.popupStack = {}
 end
 
 function PopupMenu:draw()
     if not self.visible then return end
-    PopupMenu.super.draw(self)
+
+    love.graphics.push()
+    love.graphics.translate(self.x, self.y)
+    
+    -- Draw root menu
+    self:drawSingleMenu(self.root, 0, 0)
+
+    -- Draw submenus
+    for _, submenu in ipairs(self.popupStack) do
+        self:drawSingleMenu(submenu.node, submenu.x, submenu.y)
+    end
+    
+    love.graphics.pop()
 end
 
--- function PopupMenu:handleInput(event)
---     if not self.visible then return false end
+function PopupMenu:drawSingleMenu(node, x, y)
+    local menuWidth = self:calculateMenuWidth(node)
+    local menuHeight = #node.groupStatus.children * self.style.itemHeight
+
+    -- Draw menu background
+    love.graphics.setColor(self.style.bgColor)
+    love.graphics.rectangle("fill", x, y, menuWidth, menuHeight)
+
+    -- Draw menu items
+    for i, child in ipairs(node.groupStatus.children) do
+        local itemY = y + (i - 1) * self.style.itemHeight
+        self:drawMenuItem(child, x, itemY, menuWidth)
+    end
+
+    -- Draw border
+    love.graphics.setColor(self.style.borderColor)
+    love.graphics.setLineWidth(self.style.borderWidth)
+    love.graphics.rectangle("line", x, y, menuWidth, menuHeight)
+end
+
+function PopupMenu:drawMenuItem(node, x, y, width)
+    -- Highlight if hovered or selected
+    if node == self.hoveredNode then
+        love.graphics.setColor(self.style.hoverColor)
+        love.graphics.rectangle("fill", x, y, width, self.style.itemHeight)
+    elseif node == self.selectedNode then
+        love.graphics.setColor(self.style.selectedColor)
+        love.graphics.rectangle("fill", x, y, width, self.style.itemHeight)
+    end
+
+    -- Draw text
+    love.graphics.setColor(self.style.fontColor)
+    love.graphics.setFont(self.style.font)
+    love.graphics.print(node.title, x + self.style.paddingX, y + (self.style.itemHeight - self.style.font:getHeight()) / 2)
+
+    -- Draw submenu indicator if applicable
+    if node:isGroup() then
+        love.graphics.print(self.style.submenuIndicator, x + width - self.style.paddingX - self.style.font:getWidth(self.style.submenuIndicator), y + (self.style.itemHeight - self.style.font:getHeight()) / 2)
+    end
+end
+
+function PopupMenu:calculateMenuWidth(node)
+    local maxWidth = 0
+    for _, child in ipairs(node.groupStatus.children) do
+        local itemWidth = self.style.font:getWidth(child.title) + self.style.paddingX * 2
+        if child:isGroup() then
+            itemWidth = itemWidth + self.style.font:getWidth(self.style.submenuIndicator) + self.style.paddingX
+        end
+        maxWidth = math.max(maxWidth, itemWidth)
+    end
+    return maxWidth
+end
+
+local function handlePress(self, x, y)
+    local node, menuIndex = self:getNodeAt(x, y)
+    if node then
+        self.selectedNode = node
+        if not node:isGroup() then
+            -- Leaf node selected, close menu and call callback if exists
+            self:hide()
+            if self.onSelect then
+                self.onSelect(node)
+            end
+        end
+        return true
+    else
+        -- Click outside menu, close it
+        self:hide()
+    end
+    return false
+end
+
+local function handleMove(self, x, y)
+    local newHoveredNode, menuIndex = self:getNodeAt(x, y)
     
---     if event.type == EventType.MOUSE_PRESSED or event.type == EventType.TOUCH_PRESSED then
---         local handled = PopupMenu.super.handleInput(self, event)
---         if handled and self.selectedNode and self.selectedNode.action then
---             self.selectedNode.action()
---             if self.autoClose then
---                 self:hide()
---             else
---                 self.selectedNode = nil  -- Clear selection after action
---             end
---         elseif self.autoClose and not handled then
---             self:hide()
---         end
---         return handled
---     elseif event.type == EventType.MOUSE_MOVED then
---         -- Clear selection on mouse move
---         self.selectedNode = nil
---         return PopupMenu.super.handleInput(self, event)
---     else
---         return PopupMenu.super.handleInput(self, event)
---     end
--- end
+    if newHoveredNode ~= self.hoveredNode then
+        self.hoveredNode = newHoveredNode
+        
+        if menuIndex then
+            -- Close submenus that are not parents of the current hovered node
+            for i = #self.popupStack, menuIndex + 1, -1 do
+                table.remove(self.popupStack)
+            end
+            
+            -- Open submenu on hover if it's a group
+            if self.hoveredNode and self.hoveredNode:isGroup() then
+                local parentMenu = menuIndex == 0 and self.root or self.popupStack[menuIndex].node
+                local parentX = menuIndex == 0 and 0 or self.popupStack[menuIndex].x
+                local parentY = menuIndex == 0 and 0 or self.popupStack[menuIndex].y
+                local itemIndex = self:findNodeIndex(parentMenu, self.hoveredNode)
+                local submenuX = parentX + self:calculateMenuWidth(parentMenu)
+                local submenuY = parentY + (itemIndex - 1) * self.style.itemHeight
+                
+                table.insert(self.popupStack, {node = self.hoveredNode, x = submenuX, y = submenuY})
+            end
+        else
+            -- Mouse is not over any menu item, close all submenus
+            self.popupStack = {}
+        end
+    end
+    return true
+end
+
+function PopupMenu:handleInput(event)
+    if not self.visible then return false end
+
+    if event.type == EventType.MOUSE_PRESSED then
+        return handlePress(self, event.data.x, event.data.y)
+    elseif event.type == EventType.MOUSE_MOVED then
+        return handleMove(self, event.data.x, event.data.y)
+    end
+
+    return false
+end
+
+function PopupMenu:getNodeAt(x, y)
+    local localX, localY = x - self.x, y - self.y
+    
+    -- Check submenus first (in reverse order)
+    for i = #self.popupStack, 1, -1 do
+        local submenu = self.popupStack[i]
+        if self:isPointInMenu(localX, localY, submenu) then
+            local relativeY = localY - submenu.y
+            local index = math.floor(relativeY / self.style.itemHeight) + 1
+            if index > 0 and index <= #submenu.node.groupStatus.children then
+                return submenu.node.groupStatus.children[index], i
+            end
+        end
+    end
+
+    -- Check root menu
+    if self:isPointInMenu(localX, localY, {node = self.root, x = 0, y = 0}) then
+        local index = math.floor(localY / self.style.itemHeight) + 1
+        if index > 0 and index <= #self.root.groupStatus.children then
+            return self.root.groupStatus.children[index], 0
+        end
+    end
+    
+    return nil, nil
+end
+
+function PopupMenu:isPointInMenu(x, y, menu)
+    local menuWidth = self:calculateMenuWidth(menu.node)
+    local menuHeight = #menu.node.groupStatus.children * self.style.itemHeight
+    return x >= menu.x and x <= menu.x + menuWidth and
+           y >= menu.y and y <= menu.y + menuHeight
+end
+
+function PopupMenu:findNodeIndex(parentNode, targetNode)
+    for i, child in ipairs(parentNode.groupStatus.children) do
+        if child == targetNode then
+            return i
+        end
+    end
+    return 1
+end
+
+PopupMenu.MenuItem = MenuItem
 
 return PopupMenu

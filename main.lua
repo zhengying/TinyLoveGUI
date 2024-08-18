@@ -6,12 +6,13 @@ local Slider = TinyLoveGUI.Slider
 local Button = TinyLoveGUI.Button
 local OptionSelect = TinyLoveGUI.OptionSelect
 local FlowLayout = TinyLoveGUI.FlowLayout
-local TreeView, TreeNode = unpack(TinyLoveGUI.TreeView)
+local TreeView = TinyLoveGUI.TreeView
+local TreeNode = TreeView.TreeNode
 local PopupMessage = TinyLoveGUI.PopupMessage
 local ProgressBar = TinyLoveGUI.ProgressBar
 local TextField = TinyLoveGUI.TextField
 local PopupMenu = TinyLoveGUI.PopupMenu
-
+local MenuItem = PopupMenu.MenuItem
 if os.getenv("LOCAL_LUA_DEBUGGER_VSCODE") == "1" then
     require("lldebugger").start()
 end
@@ -162,21 +163,64 @@ local function createGUI()
     print("Selected: " .. selectedOption .. " at index " .. selectedIndex)
     end
     mainView:addChild(optionSelect)
-    local menu = PopupMenu({
-        {text = "Copy", action = function() print("Copy") end},
-        {text = "Paste", action = function() print("Paste") end},
-        {text = "More Options", submenu = {
-            {text = "Option 1", action = function() print("Option 1") end},
-            {text = "Option 2", action = function() print("Option 2") end},
-        }},
-    })
-    mainView:addChild(menu)
+    -- local menu = PopupMenu({
+    --     {text = "Copy", action = function() print("Copy") end},
+    --     {text = "Paste", action = function() print("Paste") end},
+    --     {text = "More Options", submenu = {
+    --         {text = "Option 1", action = function() print("Option 1") end},
+    --         {text = "Option 2", action = function() print("Option 2") end},
+    --     }},
+    -- })
 
-    -- Add a right-click handler to mainView
-    mainView.onRightClick = function(self, x, y)
-        menu:show(x, y)
-    end 
+    -- local menu = TreeView(150, 50, 300, 150)
+    -- menu.displayMode = TreeView.DisplayMode.POPUP_MENU
+    -- mainView:addChild(menu)
+
+    -- -- Add a right-click handler to mainView
+    -- mainView.onRightClick = function(self, x, y)
+    --     menu:show(x, y)
+    -- end 
     -- In your main update/draw loop:
+
+   -- Create a popup menu using TreeView
+   local contextMenu = PopupMenu(0, 0, 200, 300)
+   contextMenu:hide()  -- Initially hidden
+
+   -- Create menu items
+   local fileMenu = MenuItem("File")
+   local editMenu = MenuItem("Edit")
+   local helpMenu = MenuItem("Help")
+
+   -- Add sub-items to File menu
+   fileMenu:addChild(MenuItem("New", function() print("New file") end))
+   fileMenu:addChild(MenuItem("Open", function() print("Open file") end))
+   fileMenu:addChild(MenuItem("Save", function() print("Save file") end))
+
+   local copyMenu = MenuItem("Copy", function() print("Copy") end)
+   copyMenu:addChild(MenuItem("Copy Plain Text", function() print("Copy Plain Text") end))
+   copyMenu:addChild(MenuItem("Copy HTML", function() print("Copy HTML") end))
+
+    -- Add sub-items to Edit menu
+   editMenu:addChild(copyMenu)
+   editMenu:addChild(MenuItem("Cut", function() print("Cut") end))
+   editMenu:addChild(MenuItem("Paste", function() print("Paste") end))
+
+   -- Add sub-items to Help menu
+   helpMenu:addChild(MenuItem("About", function() print("About") end))
+   -- Add main menu items to the context menu
+   contextMenu.root:addChild(fileMenu)
+   contextMenu.root:addChild(editMenu)
+   contextMenu.root:addChild(helpMenu)
+
+   -- Add the context menu to mainView
+   mainView:addChild(contextMenu)
+
+   --right-click handler to mainView
+   mainView.onRightClick = function(self, x, y)
+    --    contextMenu.x = x
+    --    contextMenu.y = y
+       contextMenu:show(x, y)
+   end
 
     return mainView
 

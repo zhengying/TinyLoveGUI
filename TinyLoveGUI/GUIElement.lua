@@ -178,6 +178,20 @@ function GUIElement:init(x, y, width, height, bgcolor)
     -- focus
     self.focusable = false
     -- self.focused = false
+
+    self.visible = true  -- New property to control visibility
+end
+
+function GUIElement:hide()
+    self.visible = false
+end
+
+function GUIElement:show()
+    self.visible = true
+end
+
+function GUIElement:isVisible()
+    return self.visible
 end
 
 function GUIElement:setFocusable(focusable)
@@ -260,6 +274,8 @@ function GUIElement:removeChild(child)
 end
 
 function GUIElement:draw()
+    if not self.visible then return end  -- Skip drawing if not visible
+    
     love.graphics.push()
 
     if self.DEBUG_DRAW then
