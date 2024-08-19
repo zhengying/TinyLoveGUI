@@ -13,6 +13,7 @@ local ProgressBar = TinyLoveGUI.ProgressBar
 local TextField = TinyLoveGUI.TextField
 local PopupMenu = TinyLoveGUI.PopupMenu
 local MenuItem = PopupMenu.MenuItem
+local Panel = TinyLoveGUI.Panel
 if os.getenv("LOCAL_LUA_DEBUGGER_VSCODE") == "1" then
     require("lldebugger").start()
 end
@@ -221,6 +222,17 @@ local function createGUI()
     --    contextMenu.y = y
        contextMenu:show(x, y)
    end
+
+   local panel = Panel(330, 300, 200, 200, {
+    backgroundColor = {0.2, 0.2, 0.2, 1},
+    borderColor = {0.5, 0.5, 0.5, 1},
+    borderWidth = 1,
+    })
+
+   panel:setNineSliceBackground(love.graphics.newImage("assets/images/panel1.png"), {left = 4, right = 4, top = 5, bottom = 5})
+
+   mainView:addChild(panel)
+   panel:setModal(true)
 
     return mainView
 
