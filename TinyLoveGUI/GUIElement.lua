@@ -275,7 +275,7 @@ end
 
 function GUIElement:draw()
     if not self.visible then return end  -- Skip drawing if not visible
-    
+
     love.graphics.push()
 
     if self.DEBUG_DRAW then
@@ -338,6 +338,8 @@ local function handlePositionalInput(self, event)
                 end
                 break
             end
+        else
+            child:clearFocus()
         end
     end
 

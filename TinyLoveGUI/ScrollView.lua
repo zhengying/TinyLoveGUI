@@ -113,6 +113,8 @@ end
 
 local function handlePress(self,x, y, button)
     if button ~= 1 then return false end  -- Only handle left mouse button
+    self.isDraggingVerticalScrollbar = false
+    self.isDraggingHorizontalScrollbar = false  
 
     if self:isMouseOverVerticalScrollbar(x, y) then
         self.isDraggingVerticalScrollbar = true
@@ -163,6 +165,7 @@ local function handleRelease(self, x, y, button)
         self.isDraggingHorizontalScrollbar = false
         return true
     end
+    
     return false
 end
 

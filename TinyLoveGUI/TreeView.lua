@@ -400,5 +400,20 @@ function TreeView:calculateContentWidth(node, depth)
 
     return nodeWidth
 end
+
+function TreeView:onFocusGained()
+    -- Override this method in subclasses to handle gaining focus
+    print("TreeView:onFocusGained")
+end
+
+function TreeView:onFocusLost()
+    -- Override this method in subclasses to handle losing focus
+    print("TreeView:onFocusLost")
+    self.isDraggingVerticalScrollbar = false
+    self.isDraggingHorizontalScrollbar = false
+end
+
+
+
 TreeView.TreeNode = TreeNode
 return TreeView
