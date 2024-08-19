@@ -19,6 +19,12 @@
     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
     SOFTWARE.
 --]]
+
+local cwd = select(1, ...):match(".+%.") or ""
+local Object = require(cwd .. "Object")
+
+local InputEvent = Object:extend()
+
 -- Define an enum-like table for event types
 local EventType = {
     -- Mouse events
@@ -47,7 +53,58 @@ local EventType = {
     -- Add more event types as needed
 }
 
-local InputEvent = Object:extend()
+local KeyCode = {
+    A = "a",
+    B = "b",
+    C = "c",
+    D = "d",
+    E = "e",
+    F = "f",
+    G = "g",
+    H = "h",
+    I = "i",
+    J = "j",
+    K = "k",
+    L = "l",
+    M = "m",
+    N = "n",
+    O = "o",
+    P = "p",
+    Q = "q",
+    R = "r",
+    S = "s",
+    T = "t",
+    U = "u",
+    V = "v",
+    W = "w",
+    X = "x",
+    Y = "y",
+    Z = "z",
+    TAB = "tab",
+    RETURN = "return",
+    ESCAPE = "escape",
+    SPACE = "space",
+    LEFT = "left",
+    RIGHT = "right",
+    UP = "up",
+    DOWN = "down",
+    F1 = "f1",
+    F2 = "f2",
+    F3 = "f3",
+    F4 = "f4",
+    F5 = "f5",
+    F6 = "f6",
+    F7 = "f7",
+    F8 = "f8",
+    F9 = "f9",
+    F10 = "f10",
+    F11 = "f11",
+    F12 = "f12",
+    M1 = "m1",
+    M2 = "m2",
+    M3 = "m3",
+}
+
 
 function InputEvent:init(eventType, data)
     self.type = eventType  -- "pressed", "released", "moved"
@@ -58,7 +115,6 @@ end
 local function hasPosition(event)
     return event.data.x ~= nil and event.data.y ~= nil
 end
-
 
 function InputEvent.mousepressed(x, y, button, istouch, presses)
     return InputEvent("mousepressed", {x = x, y = y, button = button, istouch = istouch, presses = presses})
@@ -152,5 +208,6 @@ end
 return {
     EventType = EventType,
     InputEvent = InputEvent,
+    KeyCode = KeyCode,
     hasPosition = hasPosition
 }

@@ -24,6 +24,7 @@ local ScrollView = require(cwd .. "ScrollView")
 local InputEventUtils = require(cwd .. "InputEventUtils")
 local EventType = InputEventUtils.EventType
 local Object = require(cwd .. "GUIElement")
+local GUIContext = require(cwd .. "GUIContext")
 
 local TreeView = ScrollView:extend()
 

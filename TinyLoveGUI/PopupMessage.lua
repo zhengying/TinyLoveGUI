@@ -21,6 +21,8 @@
 --]]
 local cwd = select(1, ...):match(".+%.") or ""
 local GUIElement = require(cwd .. "GUIElement")
+local GUIContext = require(cwd .. "GUIContext")
+
 
 -- PopupMessage
 local PopupMessage = GUIElement:extend()
@@ -36,7 +38,7 @@ function PopupMessage:init(x, y, width, height, message, duration)
     self.fontSize = 16
     self.font = love.graphics.newFont(self.fontSize)
     self.tag = "PopupMessage"
-    self.zIndex = GUIElement.ZIndexGroup.POPUP --GUIElement.ZIndexGroup.Popup
+    self.zIndex = GUIContext.ZIndexGroup.POPUP --GUIElement.ZIndexGroup.Popup
 end
 
 function PopupMessage:update(dt)
@@ -66,7 +68,7 @@ function PopupMessage:draw()
 end
 
 -- Static method to create and add a popup to a parent element
-function PopupMessage.show(parent, message, duration, width, height)
+function PopupMessage.show(context, message, duration, width, height)
     local screenWidth, screenHeight = love.graphics.getDimensions()
     width = width or 200
     height = height or 50
@@ -74,7 +76,7 @@ function PopupMessage.show(parent, message, duration, width, height)
     local y = screenHeight - height - 20  -- 20 pixels from the bottom
 
     local popup = PopupMessage(x, y, width, height, message, duration)
-    parent:addChild(popup)
+    context:addChild(popup)
     return popup
 end
 

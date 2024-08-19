@@ -1,5 +1,6 @@
 local cwd = select(1, ...):match(".+%.") or ""
 local GUIElement = require(cwd .. "GUIElement")
+local GUIContext = require(cwd .. "GUIContext")
 
 local Panel = GUIElement:extend()
 
@@ -21,7 +22,7 @@ function Panel:init(x, y, width, height, options)
     self.modalDimColor = options.modalDimColor or {0, 0, 0, 0.8}
     self.modalBlurRadius = options.modalBlurRadius or 0  -- 0 means no blur, positive value for blur
     if self.isModal then
-        self.zIndex = GUIElement.ZIndexGroup.MODAL_WINDOW
+        self.zIndex = GUIContext.ZIndexGroup.MODAL_WINDOW
     end
 end
 
@@ -148,7 +149,7 @@ function Panel:setNineSliceBackground(image, insets)
     self.backgroundPattern = nil
 end
 
-function Panel:setModal(isModal, dimColor, blurRadius)
+function Panel:setModal(isModal,dimColor, blurRadius)
     self.isModal = isModal
     if dimColor then
         self.modalDimColor = dimColor
@@ -157,12 +158,48 @@ function Panel:setModal(isModal, dimColor, blurRadius)
         self.modalBlurRadius = blurRadius
     end
     if self.isModal then
-        self.zIndex = GUIElement.ZIndexGroup.MODAL_WINDOW
+        self.zIndex = GUIContext.ZIndexGroup.MODAL_WINDOW
+        if self.context then
+            self.context:pushModal(self)
+        end
     else
-        self.zIndex = GUIElement.ZIndexGroup.NORMAL
+        self.zIndex = GUIContext.ZIndexGroup.NORMAL
+        if self.context then
+            self.context:popModal()
+        end
     end
     if self.parent then
         self.parent:sortChildren()
+    end
+end
+
+function Panel:doModal(dimColor, blurRadius)
+    if not self.isModal then
+        assert(false, "Panel is not modal")
+        return
+    end
+
+    if dimColor then
+        self.modalDimColor = dimColor
+    end
+    if blurRadius then
+        self.modalBlurRadius = blurRadius
+    end
+
+    self.zIndex = GUIContext.ZIndexGroup.MODAL_WINDOW
+    if self.context then
+        self.context:pushModal(self)
+    end
+
+    if self.parent then
+        self.parent:sortChildren()
+    end
+end
+
+function Panel:dismiss()
+    self.zIndex = GUIContext.ZIndexGroup.NORMAL
+    if self.context then
+        self.context:popModal()
     end
 end
 

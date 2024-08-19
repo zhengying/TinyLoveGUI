@@ -36,6 +36,7 @@ local TreeView = require(cwd .. "TreeView")
 local FlowLayout = require(cwd .. "FlowLayout")
 local PopupMenu = require(cwd .. "PopupMenu")
 local Panel = require(cwd .. "Panel")
+local GUIContext = require(cwd .. "GUIContext")
 
 
 return {
@@ -51,4 +52,5 @@ return {
     FlowLayout = FlowLayout,
     PopupMenu = PopupMenu,
     Panel = Panel,
+    GUIContext = GUIContext
 }

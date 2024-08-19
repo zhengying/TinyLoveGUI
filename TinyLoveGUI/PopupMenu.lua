@@ -2,6 +2,7 @@ local cwd = select(1, ...):match(".+%.") or ""
 local GUIElement = require(cwd .. "GUIElement")
 local InputEventUtils = require(cwd .. "InputEventUtils")
 local EventType = InputEventUtils.EventType
+local Object = require(cwd .. "Object")
 
 local PopupMenu = GUIElement:extend()
 

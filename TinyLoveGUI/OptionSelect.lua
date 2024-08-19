@@ -23,6 +23,7 @@
 local cwd = select(1, ...):match(".+%.") or ""
 local GUIElement = require(cwd .. "GUIElement")
 local OptionSelect = GUIElement:extend()
+local GUIContext = require(cwd .. "GUIContext")
 
 local InputEventUtils = require(cwd .. "InputEventUtils")
 local EventType = InputEventUtils.EventType    
@@ -113,9 +114,9 @@ local function handlePress(self, x, y, button)
             if localY < self.height then
                 self.isOpen = not self.isOpen
                 if self.isOpen then
-                    self:setZIndex(GUIElement.ZIndexGroup.POPUP)
+                    self:setZIndex(GUIContext.ZIndexGroup.POPUP)
                 else
-                    self:setZIndex(GUIElement.ZIndexGroup.NORMAL)
+                    self:setZIndex(GUIContext.ZIndexGroup.NORMAL)
                 end
             elseif self.isOpen then
                 if localX > self.width - self.scrollbarWidth and #self.options > self.maxVisibleItems then
@@ -127,7 +128,7 @@ local function handlePress(self, x, y, button)
                         self.selectedOption = self.options[index]
                         self.selectedIndex = index
                         self.isOpen = false
-                        self:setZIndex(GUIElement.ZIndexGroup.NORMAL)
+                        self:setZIndex(GUIContext.ZIndexGroup.NORMAL)
                         if self.onChange then
                             self.onChange(self.selectedOption, self.selectedIndex)
                         end
@@ -138,7 +139,7 @@ local function handlePress(self, x, y, button)
         end
     elseif self.isOpen then
         self.isOpen = false
-        self:setZIndex(GUIElement.ZIndexGroup.NORMAL)
+        self:setZIndex(GUIContext.ZIndexGroup.NORMAL)
         return true
     end
     

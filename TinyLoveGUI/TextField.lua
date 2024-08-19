@@ -290,7 +290,7 @@ local function handleKeyPress(self, key, scancode, isrepeat)
             self.text = before .. after
         end
     elseif key == "return" or key == "escape" then
-        self:clearFocus()
+        -- clear focus maybe no need
     end
     self:updateTextOffset()  -- Update text offset after changing cursor position or text
     return true

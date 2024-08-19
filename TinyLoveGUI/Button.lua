@@ -24,6 +24,7 @@ local GUIElement = require(cwd .. "GUIElement")
 local InputEventUtils = require(cwd .. "InputEventUtils")
 local EventType = InputEventUtils.EventType  
 local InputEvent = InputEventUtils.InputEvent
+local GUIContext = require(cwd .. "GUIContext")
 
 
 -- Button: A clickable GUI element
@@ -57,20 +58,20 @@ function Button:init(x, y, width, height, options)
     
     if self.mode == "simple" then
         self.colors = {
-            [GUIElement.State.NORMAL] = self.options.normalColor or {0.5, 0.5, 0.5, 1},
-            [GUIElement.State.HOVER] = self.options.hoverColor or {0.7, 0.7, 0.7, 1},
-            [GUIElement.State.PRESSED] = self.options.pressedColor or {0.3, 0.3, 0.3, 1}
+            [GUIContext.State.NORMAL] = self.options.normalColor or {0.5, 0.5, 0.5, 1},
+            [GUIContext.State.HOVER] = self.options.hoverColor or {0.7, 0.7, 0.7, 1},
+            [GUIContext.State.PRESSED] = self.options.pressedColor or {0.3, 0.3, 0.3, 1}
         }
     elseif self.mode == "image" then
         self.images = {
-            [GUIElement.State.NORMAL] = self.options.normalImage,
-            [GUIElement.State.HOVER] = self.options.hoverImage,
-            [GUIElement.State.PRESSED] = self.options.pressedImage
+            [GUIContext.State.NORMAL] = self.options.normalImage,
+            [GUIContext.State.HOVER] = self.options.hoverImage,
+            [GUIContext.State.PRESSED] = self.options.pressedImage
         }
         self.imageColors = {
-            [GUIElement.State.NORMAL] = {1, 1, 1, 1},
-            [GUIElement.State.HOVER] = {0.8, 0.8, 0.8, 1},
-            [GUIElement.State.PRESSED] = {0.6, 0.6, 0.6, 1}
+            [GUIContext.State.NORMAL] = {1, 1, 1, 1},
+            [GUIContext.State.HOVER] = {0.8, 0.8, 0.8, 1},
+            [GUIContext.State.PRESSED] = {0.6, 0.6, 0.6, 1}
         }
     end
 
@@ -87,7 +88,7 @@ function Button:draw()
         love.graphics.setColor(unpack(self.colors[self.state]))
         love.graphics.rectangle("fill", 0, 0, self.width, self.height)
     elseif self.mode == "image" then
-        local image = self.images[self.state] or self.images[GUIElement.State.NORMAL]
+        local image = self.images[self.state] or self.images[GUIContext.State.NORMAL]
         if image then
             love.graphics.setColor(unpack(self.imageColors[self.state]))
             love.graphics.draw(image, 0, 0, 0, self.width / image:getWidth(), self.height / image:getHeight())
@@ -120,14 +121,14 @@ end
 
 function Button:handlePress(x, y, button)
     if button and button ~= 1 then return false end  -- Only handle left mouse button
-    self:_stateChanged(GUIElement.State.PRESSED)
+    self:_stateChanged(GUIContext.State.PRESSED)
     return true
 end
 
 function Button:handleRelease(x, y, button)
     if button and button ~= 1 then return false end  -- Only handle left mouse button
-    if self.state == GUIElement.State.PRESSED then
-        self:_stateChanged(GUIElement.State.HOVER)
+    if self.state == GUIContext.State.PRESSED then
+        self:_stateChanged(GUIContext.State.HOVER)
         self.onClick()
     end
     return true
@@ -135,9 +136,9 @@ end
 
 function Button:handleKeyPress(key)
     if key == "return" or key == "space" then
-        self:_stateChanged(GUIElement.State.PRESSED)
+        self:_stateChanged(GUIContext.State.PRESSED)
         self.onClick()
-        self:_stateChanged(GUIElement.State.NORMAL)
+        self:_stateChanged(GUIContext.State.NORMAL)
         return true
     end
     return false

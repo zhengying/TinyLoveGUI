@@ -24,6 +24,7 @@ local GUIElement = require(cwd .. "GUIElement")
 local InputEventUtils = require(cwd .. "InputEventUtils")
 local EventType = InputEventUtils.EventType
 local InputEvent = InputEventUtils.InputEvent
+local GUIContext = require(cwd .. "GUIContext")
 
 local ScrollView = GUIElement:extend()
 
@@ -117,9 +118,11 @@ local function handlePress(self,x, y, button)
     self.isDraggingHorizontalScrollbar = false  
 
     if self:isMouseOverVerticalScrollbar(x, y) then
+
         self.isDraggingVerticalScrollbar = true
         local scrollbarY = self.y + (self.offsetY / (self.contentHeight - self.height)) * (self.height - self:getVerticalScrollbarHeight())
         self.scrollbarGrabOffset = y - scrollbarY
+        print("isMouseOverVerticalScrollbar" .. tostring(self.scrollbarGrabOffset))
         return true
     elseif self:isMouseOverHorizontalScrollbar(x, y) then
         self.isDraggingHorizontalScrollbar = true
@@ -139,22 +142,24 @@ local function handlePress(self,x, y, button)
 end
 
 local function handleMove(self, x, y, dx, dy)
-    if self.isDraggingVerticalScrollbar then
-        local scrollableHeight = self.contentHeight - self.height
-        local scrollbarHeight = self:getVerticalScrollbarHeight()
-        local maxScrollbarY = self.height - scrollbarHeight
-        local newScrollbarY = y - self.y - self.scrollbarGrabOffset
-        local scrollPercentage = newScrollbarY / maxScrollbarY
-        self:scrollVerticalTo(scrollableHeight * scrollPercentage)
-        return true
-    elseif self.isDraggingHorizontalScrollbar then
-        local scrollableWidth = self.contentWidth - self.width
-        local scrollbarWidth = self:getHorizontalScrollbarWidth()
-        local maxScrollbarX = self.width - scrollbarWidth
-        local newScrollbarX = x - self.x - self.scrollbarGrabOffset
-        local scrollPercentage = newScrollbarX / maxScrollbarX
-        self:scrollHorizontalTo(scrollableWidth * scrollPercentage)
-        return true
+    if self.context:checkKeyPress(GUIContext.keycodes.M1) then
+        if self.isDraggingVerticalScrollbar then
+            local scrollableHeight = self.contentHeight - self.height
+            local scrollbarHeight = self:getVerticalScrollbarHeight()
+            local maxScrollbarY = self.height - scrollbarHeight
+            local newScrollbarY = y - self.y - self.scrollbarGrabOffset
+            local scrollPercentage = newScrollbarY / maxScrollbarY
+            self:scrollVerticalTo(scrollableHeight * scrollPercentage)
+            return true
+        elseif self.isDraggingHorizontalScrollbar then
+            local scrollableWidth = self.contentWidth - self.width
+            local scrollbarWidth = self:getHorizontalScrollbarWidth()
+            local maxScrollbarX = self.width - scrollbarWidth
+            local newScrollbarX = x - self.x - self.scrollbarGrabOffset
+            local scrollPercentage = newScrollbarX / maxScrollbarX
+            self:scrollHorizontalTo(scrollableWidth * scrollPercentage)
+            return true
+        end
     end
     return false
 end

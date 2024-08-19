@@ -20,59 +20,13 @@
     SOFTWARE.
 --]]
 
--- this object class from SNKRX (https://github.com/a327ex/SNKRX/blob/master/engine/game/object.lua
--- OOP Base
-Object = {}
-Object.__index = Object
+local cwd = select(1, ...):match(".+%.") or ""
+local Object = require(cwd .. "Object")
+local InputEventUtils = require(cwd .. "InputEventUtils")
+local EventType = InputEventUtils.EventType  
+local InputEvent = InputEventUtils.InputEvent 
+local KeyCode = InputEventUtils.KeyCode
 
-
-local DEBUG_DRAW = true
-
-function Object:init() end
-
-function Object:extend()
-  local cls = {}
-  for k, v in pairs(self) do
-    if k:find("__") == 1 then
-      cls[k] = v
-    end
-  end
-  cls.__index = cls
-  cls.super = self
-  setmetatable(cls, self)
-  return cls
-end
-
-function Object:implement(...)
-  for _, cls in pairs({...}) do
-    for k, v in pairs(cls) do
-      if self[k] == nil and type(v) == "function" then
-        self[k] = v
-      end
-    end
-  end
-end
-
-function Object:is(T)
-  local mt = getmetatable(self)
-  while mt do
-    if mt == T then
-      return true
-    end
-    mt = getmetatable(mt)
-  end
-  return false
-end
-
-function Object:__tostring()
-  return "Object"
-end
-
-function Object:__call(...)
-  local obj = setmetatable({}, self)
-  obj:init(...)
-  return obj
-end
 
 -- Helper function to split string into lines
 function string:split(sep)
@@ -92,75 +46,11 @@ function table.indexof(t, value)
 end
 
 
-
-
 -- GUIElement: Base class for all GUI elements
 local GUIElement = Object:extend()
 
+local GUIContext = require(cwd .. "GUIContext")
 
-local cwd = select(1, ...):match(".+%.") or ""
-print('cwd:' .. cwd)
-local InputEventUtils = require(cwd .. "InputEventUtils")
-local EventType = InputEventUtils.EventType  
-local InputEvent = InputEventUtils.InputEvent 
-
-GUIElement.DEBUG_ALL = true
-GUIElement.DEBUG_TYPE = {
-    LOG = 1,    -- log
-    WARN = 2,   -- warn
-    ERROR = 3,  -- error    
-}
-function GUIElement.debug_print(type, ...)
-    if type == GUIElement.DEBUG_TYPE.LOG then
-        print('LOG: ' .. ...)
-    elseif type == GUIElement.DEBUG_TYPE.WARN then
-        print('WARN: ' .. ...)  
-    elseif type == GUIElement.DEBUG_TYPE.ERROR then
-        print('ERROR: ' .. ...)
-    end
-end
-
-GUIElement.debug_print_error = function(...)
-    GUIElement.debug_print(GUIElement.DEBUG_TYPE.ERROR, ...)
-end
-
-GUIElement.debug_print_log = function(...)
-    GUIElement.debug_print(GUIElement.DEBUG_TYPE.LOG, ...)
-end
-
-GUIElement.debug_print_warn = function(...)
-    GUIElement.debug_print(GUIElement.DEBUG_TYPE.WARN, ...)
-end
-
-
-if GUIElement.DEBUG_ALL then
-    GUIElement.print_error = GUIElement.debug_print     
-else
-    GUIElement.print_error = function() end
-end
-
-
-GUIElement.ZIndexGroupNames = {
-    SHADOW = 'SHADOW',
-    NORMAL = 'NORMAL',
-    MODAL_WINDOW = "MODAL_WINDOW",
-    POPUP = 'POPUP'  -- Added for elements like dropdowns that should be on top
-}
-
-GUIElement.ZIndexGroup = {
-    SHADOW = 10,
-    NORMAL = 500,
-    MODAL_WINDOW = 1000,
-    POPUP = 1500  -- Added for elements like dropdowns that should be on top 
-}
-
-GUIElement.State = {
-    NORMAL = "normal",
-    HOVER = "hover",
-    PRESSED = "pressed"
-  }
-
-local focusedElement = nil
 
   
 function GUIElement:init(x, y, width, height, bgcolor)
@@ -171,15 +61,20 @@ function GUIElement:init(x, y, width, height, bgcolor)
     self.children = {}
     self.parent = nil
     self.bgcolor = bgcolor or {r=0.5,g=0.5,b=0.5}
-    self.state = GUIElement.State.NORMAL
+    self.state = GUIContext.State.NORMAL
     self.tag = "GUIElement"
-    self.zIndex = GUIElement.ZIndexGroup.NORMAL
+    self.zIndex = GUIContext.ZIndexGroup.NORMAL
     self.DEBUG_DRAW = DEBUG_DRAW
+    self.context = nil
     -- focus
     self.focusable = false
     -- self.focused = false
 
     self.visible = true  -- New property to control visibility
+end
+
+function GUIElement:setAsRoot(context)
+    self.context = context
 end
 
 function GUIElement:hide()
@@ -203,39 +98,38 @@ function GUIElement:isFocusable()
 end
 
 function GUIElement:isFocused()
-    return focusedElement == self
+    return self.context.focusedElement == self
 end
-
 
 function GUIElement:setFocus()
-    if self.focusable and focusedElement ~= self then
-        if focusedElement then
-            focusedElement:onFocusLost()
-        end
-        focusedElement = self
-        self:onFocusGained()
-    end
+    self.context:setFocus(self)
 end
 
-function GUIElement:clearFocus()
-    if focusedElement == self then
-        focusedElement = nil
-        self:onFocusLost()
-    end
-end
+-- function GUIElement:setFocus()
+--     -- if self.focusable and self.context.focusedElement ~= self then
+--     --     if self.context.focusedElement then
+--     --         self.context.focusedElement:onFocusLost()
+--     --         self.context:setFocus(nil)
+--     --     end
+--     --     self.context:setFocus(self)
+--     --     self:onFocusGained()
+--     -- end
+--     self.context:setFocus(self)
+-- end
+
+-- function GUIElement:clearFocus()
+--     -- if focusedElement == self then
+--     --     focusedElement = nil
+--     --     self:onFocusLost()
+--     -- end
+--     self.context:setFocus(nil)
+-- end
 function GUIElement:onFocusGained()
     -- Override this method in subclasses to handle gaining focus
 end
 
 function GUIElement:onFocusLost()
     -- Override this method in subclasses to handle losing focus
-end
-
-
-
-
-function GUIElement:setDebugDraw(debugDraw)
-    self.DEBUG_DRAW = debugDraw
 end
 
 function GUIElement:setZIndex(zIndex)
@@ -245,19 +139,21 @@ function GUIElement:setZIndex(zIndex)
     end
 end
 
-
 function GUIElement:addChild(child)
+    assert(child.parent == nil, "child.parent is already set")
+    assert(self.context ~= nil, "parent context is not set")
     table.insert(self.children, child)
     child.parent = self
+    child.context = self.context
     self:sortChildren()
 end
 
 function GUIElement:_stateChanged(new_state)
     if new_state == nil or self.state == nil then
-       GUIElement.debug_print_log("! new state is nil")
+        GUIContext.debug_print_log("! new state is nil")
     end
     if self.state ~= new_state then
-       GUIElement.debug_print_log("tag:"..self.tag .. " state changed:" .. self.state .. '~>' .. new_state)
+       GUIContext.debug_print_log("tag:"..self.tag .. " state changed:" .. self.state .. '~>' .. new_state)
     end
 
     self.state = new_state
@@ -315,6 +211,7 @@ function GUIElement:update(dt)
     end
 end
 
+
 local function handlePositionalInput(self, event)
     if not self:isPointInside(event.data.x, event.data.y) then
         return false
@@ -338,8 +235,6 @@ local function handlePositionalInput(self, event)
                 end
                 break
             end
-        else
-            child:clearFocus()
         end
     end
 
@@ -430,60 +325,6 @@ function GUIElement:getRealSize()
     return self.width, self.height
 end
 
-
--- Modify existing event handlers
-function GUIElement:mousepressed(x, y, button)
-    local event = InputEvent.mousepressed(x, y, button)
-    return self:handleInput(event)
-end
-
-function GUIElement:mousemoved(x, y, dx, dy)
-    local event = InputEvent.mousemoved(x, y, dx, dy)
-    return self:handleInput(event)
-end
-
-function GUIElement:mousereleased(x, y, button)
-    local event = InputEvent.mousereleased(x, y, button)
-    return self:handleInput(event)
-end
-
-function GUIElement:touchpressed(id, x, y, dx, dy, pressure)
-    local event = InputEvent.touchpressed(id, x, y, dx, dy, pressure)
-    return self:handleInput(event)
-end
-
-function GUIElement:touchmoved(id, x, y, dx, dy, pressure)
-    local event = InputEvent.touchmoved(id, x, y, dx, dy, pressure)
-    return self:handleInput(event)
-end
-
-function GUIElement:touchreleased(id, x, y, dx, dy, pressure)
-    local event = InputEvent.touchreleased(id, x, y, dx, dy, pressure)
-    return self:handleInput(event)
-end
-
--- Add handlers for non-positional events
-function GUIElement:keypressed(key, scancode, isrepeat)
-    local event = InputEvent.keypressed(key, scancode, isrepeat)
-    return self:handleInput(event)
-end
-
-function GUIElement:keyreleased(key, scancode)
-    local event = InputEvent.keyreleased(key, scancode)
-    return self:handleInput(event)
-end
-
-function GUIElement:textinput(text)
-    local event = InputEvent.textinput(text)
-    return self:handleInput(event)
-end
-
-function GUIElement:wheelmoved(dx, dy)
-    local event = InputEvent.wheelmoved(dx, dy)
-    return self:handleInput(event)
-end
-
--- onInput method remains the same
 function GUIElement:onInput(event)
     -- Default implementation, to be overridden in subclasses
     if (event.type == EventType.MOUSE_PRESSED or event.type == EventType.TOUCH_PRESSED) then
