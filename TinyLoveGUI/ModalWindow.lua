@@ -2,11 +2,11 @@ local cwd = select(1, ...):match(".+%.") or ""
 local GUIElement = require(cwd .. "GUIElement")
 local GUIContext = require(cwd .. "GUIContext")
 local EventType = GUIContext.EventType
-local Panel = GUIElement:extend()
+local ModalWindow = GUIElement:extend()
 
-function Panel:init(x, y, width, height, options)
-    Panel.super.init(self, x, y, width, height)
-    self.tag = "Panel"
+function ModalWindow:init(x, y, width, height, options)
+    ModalWindow.super.init(self, x, y, width, height)
+    self.tag = "ModalWindow"
     
     options = options or {}
     self.backgroundColor = options.backgroundColor or {0.8, 0.8, 0.8, 1}
@@ -18,12 +18,10 @@ function Panel:init(x, y, width, height, options)
     self.nineSliceImage = options.nineSliceImage
     self.nineSliceInsets = options.nineSliceInsets or {left = 8, right = 8, top = 8, bottom = 8}
     
-    self.isModal = options.isModal or true
     self.modalDimColor = options.modalDimColor or {0, 0, 0, 0.8}
     self.modalBlurRadius = options.modalBlurRadius or 0  -- 0 means no blur, positive value for blur
-    if self.isModal then
-        self.zIndex = GUIContext.ZIndexGroup.MODAL_WINDOW
-    end
+    self.zIndex = GUIContext.ZIndexGroup.MODAL_WINDOW
+    self.visible = false
 end
 
 
@@ -43,9 +41,9 @@ local function handleRelease(self, x, y, button)
 end
 
 
-function Panel:handleInput(event)
+function ModalWindow:handleInput(event)
     if not self.visible then return false end
-    if Panel.super.handleInput(self, event) then
+    if ModalWindow.super.handleInput(self, event) then
         return true
     end
     
@@ -59,12 +57,10 @@ function Panel:handleInput(event)
     return false
 end
 
-function Panel:draw()
+function ModalWindow:draw()
     if not self.visible then return false end
 
-    if self.isModal then
-        self:drawModalBackground()
-    end
+    self:drawModalBackground()
 
     love.graphics.push()
     love.graphics.translate(self.x, self.y)
@@ -92,7 +88,7 @@ function Panel:draw()
     love.graphics.pop()
 end
 
-function Panel:drawModalBackground()
+function ModalWindow:drawModalBackground()
     local w, h = love.graphics.getDimensions()
     
     if self.modalBlurRadius > 0 then
@@ -106,17 +102,17 @@ function Panel:drawModalBackground()
     love.graphics.rectangle("fill", 0, 0, w, h)
 end
 
-function Panel:drawSolidBackground()
+function ModalWindow:drawSolidBackground()
     love.graphics.setColor(unpack(self.backgroundColor))
     love.graphics.rectangle("fill", 0, 0, self.width, self.height)
 end
 
-function Panel:drawBackgroundImage()
+function ModalWindow:drawBackgroundImage()
     love.graphics.setColor(1, 1, 1, 1)
     love.graphics.draw(self.backgroundImage, 0, 0, 0, self.width / self.backgroundImage:getWidth(), self.height / self.backgroundImage:getHeight())
 end
 
-function Panel:drawBackgroundPattern()
+function ModalWindow:drawBackgroundPattern()
     love.graphics.setColor(1, 1, 1, 1)
     local patternWidth, patternHeight = self.backgroundPattern:getDimensions()
     for y = 0, self.height, patternHeight do
@@ -126,7 +122,7 @@ function Panel:drawBackgroundPattern()
     end
 end
 
-function Panel:drawNineSliceBackground()
+function ModalWindow:drawNineSliceBackground()
     love.graphics.setColor(1, 1, 1, 1)
     local imgWidth, imgHeight = self.nineSliceImage:getDimensions()
     local left, right, top, bottom = self.nineSliceInsets.left, self.nineSliceInsets.right, self.nineSliceInsets.top, self.nineSliceInsets.bottom
@@ -165,19 +161,19 @@ function Panel:drawNineSliceBackground()
     love.graphics.draw(self.nineSliceImage, center, left, top, 0, scaleX, scaleY)
 end
 
-function Panel:setBackgroundImage(image)
+function ModalWindow:setBackgroundImage(image)
     self.backgroundImage = image
     self.backgroundPattern = nil
     self.nineSliceImage = nil
 end
 
-function Panel:setBackgroundPattern(pattern)
+function ModalWindow:setBackgroundPattern(pattern)
     self.backgroundPattern = pattern
     self.backgroundImage = nil
     self.nineSliceImage = nil
 end
 
-function Panel:setNineSliceBackground(image, insets)
+function ModalWindow:setNineSliceBackground(image, insets)
     self.nineSliceImage = image
     self.nineSliceInsets = insets or self.nineSliceInsets
     self.backgroundImage = nil
@@ -208,14 +204,10 @@ end
 --     end
 -- end
 
-function Panel:doModal(dimColor, blurRadius)
-    if not self.isModal then
-        assert(false, "Panel is not modal")
-        return
-    end
+function ModalWindow:doModal(dimColor, blurRadius)
 
     if dimColor then
-        self.modalDimColor = dimColor
+       self.modalDimColor = dimColor
     end
     if blurRadius then
         self.modalBlurRadius = blurRadius
@@ -232,7 +224,7 @@ function Panel:doModal(dimColor, blurRadius)
     self.visible = true
 end
 
-function Panel:dismiss()
+function ModalWindow:dismiss()
     self.zIndex = GUIContext.ZIndexGroup.NORMAL
     if self.context then
         self.context:popModal()
@@ -240,4 +232,4 @@ function Panel:dismiss()
     self.visible = false
 end
 
-return Panel
+return ModalWindow

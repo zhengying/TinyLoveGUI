@@ -6,13 +6,13 @@ local Object = require(cwd .. "Object")
 
 local PopupMenu = GUIElement:extend()
 
--- TreeNode class (simplified for PopupMenu use)
 local MenuItem = Object:extend()
 
-function MenuItem:init(title, data)
+function MenuItem:init(title,callback, data)
     self.title = title
     self.data = data
     self.groupStatus = nil
+    self.callback = callback
 end
 
 function MenuItem:setAsGroup(isExpanded)
@@ -42,7 +42,7 @@ function PopupMenu:init(x, y, width, height)
     self.hoveredNode = nil
     self.popupStack = {}
     self.visible = false
-    self.onSelect = nil
+    -- self.onSelect = nil
 
     -- Default style settings
     self.style = {
@@ -165,12 +165,12 @@ end
 local function handlePress(self, x, y)
     local node, menuIndex = self:getNodeAt(x, y)
     if node then
-        self.selectedNode = node
+        --self.selectedNode = node
         if not node:isGroup() then
             -- Leaf node selected, close menu and call callback if exists
             self:hide()
-            if self.onSelect then
-                self.onSelect(node)
+            if node.callback then
+                node:callback()
             end
         end
         return true

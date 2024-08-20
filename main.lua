@@ -13,7 +13,7 @@ local ProgressBar = TinyLoveGUI.ProgressBar
 local TextField = TinyLoveGUI.TextField
 local PopupMenu = TinyLoveGUI.PopupMenu
 local MenuItem = PopupMenu.MenuItem
-local Panel = TinyLoveGUI.Panel
+local ModalWindow = TinyLoveGUI.ModalWindow
 local GUIContext = TinyLoveGUI.GUIContext
 if os.getenv("LOCAL_LUA_DEBUGGER_VSCODE") == "1" then
     require("lldebugger").start()
@@ -166,7 +166,7 @@ local function createGUI()
     -- end 
     -- In your main update/draw loop:
 
-    local panel = Panel(330, 300, 600, 200, {
+    local panel = ModalWindow(330, 300, 600, 200, {
         backgroundColor = {0.2, 0.2, 0.2, 1},
         borderColor = {0.5, 0.5, 0.5, 1},
         borderWidth = 1,
@@ -188,7 +188,7 @@ local function createGUI()
    fileMenu:addChild(MenuItem("New", function() print("New file") end))
    fileMenu:addChild(MenuItem("Open", function() 
     print("Open file") 
-    panel:doModal(true)
+    panel:doModal()
    end))
    fileMenu:addChild(MenuItem("Save", function() print("Save file") end))
 

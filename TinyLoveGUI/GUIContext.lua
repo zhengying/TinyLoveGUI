@@ -157,7 +157,14 @@ end
 
 function GUIContext:handleInput(event)
     if self:hasModalWindow() then
-        return self:getTopModal():handleInput(event)
+        local modalWindow = self:getTopModal()
+        local blhandled = modalWindow:handleInput(event)
+        if not blhandled then
+            if event.type == GUIContext.EventType.MOUSE_PRESSED or event.type == GUIContext.EventType.TOUCH_PRESSED then
+                modalWindow:dismiss()
+            end
+        end
+        return blhandled
     elseif self.root then
         return self.root:handleInput(event)
     end
@@ -168,7 +175,6 @@ function GUIContext:draw()
     if self.root then
         self.root:draw()
     end
-    
     -- Draw modal windows on top
     for _, modalElement in ipairs(self.modalStack) do
         modalElement:draw()
