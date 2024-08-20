@@ -1,7 +1,7 @@
 local cwd = select(1, ...):match(".+%.") or ""
 local GUIElement = require(cwd .. "GUIElement")
 local GUIContext = require(cwd .. "GUIContext")
-
+local EventType = GUIContext.EventType
 local Panel = GUIElement:extend()
 
 function Panel:init(x, y, width, height, options)
@@ -18,7 +18,7 @@ function Panel:init(x, y, width, height, options)
     self.nineSliceImage = options.nineSliceImage
     self.nineSliceInsets = options.nineSliceInsets or {left = 8, right = 8, top = 8, bottom = 8}
     
-    self.isModal = options.isModal or false
+    self.isModal = options.isModal or true
     self.modalDimColor = options.modalDimColor or {0, 0, 0, 0.8}
     self.modalBlurRadius = options.modalBlurRadius or 0  -- 0 means no blur, positive value for blur
     if self.isModal then
@@ -26,7 +26,42 @@ function Panel:init(x, y, width, height, options)
     end
 end
 
+
+local function handlePress(self, x, y, button)
+    if self:isPointInside(x, y) == false then
+        self:dismiss()
+    end
+    return false
+end
+
+local function handleMove(self, x, y, dx, dy)
+    return false
+end
+
+local function handleRelease(self, x, y, button)
+    return false
+end
+
+
+function Panel:handleInput(event)
+    if not self.visible then return false end
+    if Panel.super.handleInput(self, event) then
+        return true
+    end
+    
+    if event.type == EventType.MOUSE_PRESSED or event.type == EventType.TOUCH_PRESSED then
+        return handlePress(self, event.data.x, event.data.y, event.data.button)
+    elseif event.type == EventType.MOUSE_RELEASED or event.type == EventType.TOUCH_RELEASED then
+        return handleRelease(self, event.data.x, event.data.y, event.data.button)
+    elseif event.type == EventType.MOUSE_MOVED or event.type == EventType.TOUCH_MOVED then
+        return handleMove(self, event.data.x, event.data.y, event.data.dx, event.data.dy)
+    end
+    return false
+end
+
 function Panel:draw()
+    if not self.visible then return false end
+
     if self.isModal then
         self:drawModalBackground()
     end
@@ -149,29 +184,29 @@ function Panel:setNineSliceBackground(image, insets)
     self.backgroundPattern = nil
 end
 
-function Panel:setModal(isModal,dimColor, blurRadius)
-    self.isModal = isModal
-    if dimColor then
-        self.modalDimColor = dimColor
-    end
-    if blurRadius then
-        self.modalBlurRadius = blurRadius
-    end
-    if self.isModal then
-        self.zIndex = GUIContext.ZIndexGroup.MODAL_WINDOW
-        if self.context then
-            self.context:pushModal(self)
-        end
-    else
-        self.zIndex = GUIContext.ZIndexGroup.NORMAL
-        if self.context then
-            self.context:popModal()
-        end
-    end
-    if self.parent then
-        self.parent:sortChildren()
-    end
-end
+-- function Panel:setModal(isModal,dimColor, blurRadius)
+--     self.isModal = isModal
+--     if dimColor then
+--         self.modalDimColor = dimColor
+--     end
+--     if blurRadius then
+--         self.modalBlurRadius = blurRadius
+--     end
+--     if self.isModal then
+--         self.zIndex = GUIContext.ZIndexGroup.MODAL_WINDOW
+--         if self.context then
+--             self.context:pushModal(self)
+--         end
+--     else
+--         self.zIndex = GUIContext.ZIndexGroup.NORMAL
+--         if self.context then
+--             self.context:popModal()
+--         end
+--     end
+--     if self.parent then
+--         self.parent:sortChildren()
+--     end
+-- end
 
 function Panel:doModal(dimColor, blurRadius)
     if not self.isModal then
@@ -194,6 +229,7 @@ function Panel:doModal(dimColor, blurRadius)
     if self.parent then
         self.parent:sortChildren()
     end
+    self.visible = true
 end
 
 function Panel:dismiss()
@@ -201,6 +237,7 @@ function Panel:dismiss()
     if self.context then
         self.context:popModal()
     end
+    self.visible = false
 end
 
 return Panel

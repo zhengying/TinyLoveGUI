@@ -2,7 +2,7 @@ local cwd = select(1, ...):match(".+%.") or ""
 local Object = require(cwd .. "Object")
 local InputEventUtils = require(cwd .. "InputEventUtils")
 local GUIContext = Object:extend()
-
+GUIContext.EventType = InputEventUtils.EventType
 
 
 GUIContext.ZIndexGroupNames = {
