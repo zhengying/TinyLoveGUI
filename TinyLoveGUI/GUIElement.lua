@@ -49,6 +49,15 @@ end
 -- GUIElement: Base class for all GUI elements
 local GUIElement = Object:extend()
 
+GUIElement.Animate_type = {
+    STATIC = "STATIC",
+    ALPHA = "ALPHA",
+    DOWN_TOP = "DOWN_TOP",
+    TOP_DOWN = "TOP_DOWN",
+    LEFT_RIGHT = "LEFT_RIGHT",
+    RIGHT_LEFT = "RIGHT_LEFT"
+}
+
 local GUIContext = require(cwd .. "GUIContext")
 
 
@@ -72,6 +81,7 @@ function GUIElement:init(x, y, width, height, bgcolor)
 
     self.visible = true  -- New property to control visibility
 end
+
 
 function GUIElement:setAsRoot(context)
     self.context = context
@@ -145,6 +155,9 @@ function GUIElement:addChild(child)
     table.insert(self.children, child)
     child.parent = self
     child.context = self.context
+    if child.onAddToContext then
+        child:onAddToContext(self.context)
+    end
     self:sortChildren()
 end
 

@@ -18,10 +18,46 @@ function ModalWindow:init(x, y, width, height, options)
     self.nineSliceImage = options.nineSliceImage
     self.nineSliceInsets = options.nineSliceInsets or {left = 8, right = 8, top = 8, bottom = 8}
     
-    self.modalDimColor = options.modalDimColor or {0, 0, 0, 0.8}
+    self.bg_alpha = options.bg_alpha or 0
+    -- self.modalDimColor = options.modalDimColor or {0, 0, 0, self.bg_alpha}
     self.modalBlurRadius = options.modalBlurRadius or 0  -- 0 means no blur, positive value for blur
     self.zIndex = GUIContext.ZIndexGroup.MODAL_WINDOW
     self.visible = false
+end
+
+
+function ModalWindow:animation_init(context)
+    self.duration = 0.5
+    local type = self.animate_type or GUIElement.Animate_type.TOP_DOWN
+    self.animate_type = type
+    local screen_center_x, screen_center_y = (context.w-self.width)/2, (context.h-self.height)/2
+    self.x = screen_center_x
+    self.y = screen_center_y
+    local game_w, game_h = self.context.w, self.context.h
+
+    if type == GUIElement.Animate_type.ALPHA then 
+        self.animated_from = {bg_alpha = 0}
+        self.animated_to = {bg_alpha = 1}
+    elseif type == GUIElement.Animate_type.TOP_DOWN then
+        self.animated_from = {y = -self.height - 10}
+        self.animated_to = {y = screen_center_y}
+    elseif type == GUIElement.Animate_type.DOWN_TOP then
+        self.animated_from = {y = self.game_h + 10}
+        self.animated_to = {y = screen_center_y}
+    elseif type == GUIElement.Animate_type.LEFT_RIGHT then
+        self.animated_from = {x = -self.width - 10}
+        self.animated_to = {x = screen_center_x}
+    elseif type == GUIElement.Animate_type.RIGHT_LEFT then
+        self.animated_from = {x = self.game_w + 10}
+        self.animated_to = {x = screen_center_x}
+    end
+
+    self.animated_from['bg_alpha'] = 0
+    self.animated_to['bg_alpha'] = 0.6
+
+    for key, value in pairs(self.animated_from) do
+        self[key] = value
+    end
 end
 
 
@@ -40,6 +76,9 @@ local function handleRelease(self, x, y, button)
     return false
 end
 
+function ModalWindow:onAddToContext(context)
+    --self:animation_init(context)
+end
 
 function ModalWindow:handleInput(event)
     if not self.visible then return false end
@@ -98,7 +137,7 @@ function ModalWindow:drawModalBackground()
         love.graphics.rectangle("fill", 0, 0, w, h)
     end
     
-    love.graphics.setColor(unpack(self.modalDimColor))
+    love.graphics.setColor(0, 0, 0, self.bg_alpha)
     love.graphics.rectangle("fill", 0, 0, w, h)
 end
 
@@ -204,15 +243,13 @@ end
 --     end
 -- end
 
-function ModalWindow:doModal(dimColor, blurRadius)
 
-    if dimColor then
-       self.modalDimColor = dimColor
-    end
-    if blurRadius then
-        self.modalBlurRadius = blurRadius
-    end
 
+function ModalWindow:doModal(finishedCallback, dismissedCallback)
+
+    if self.state == 'animating' then return end
+    self:animation_init(self.context)
+    self.state = 'animating'
     self.zIndex = GUIContext.ZIndexGroup.MODAL_WINDOW
     if self.context then
         self.context:pushModal(self)
@@ -222,14 +259,51 @@ function ModalWindow:doModal(dimColor, blurRadius)
         self.parent:sortChildren()
     end
     self.visible = true
+ 
+    self.popup_finishedCallback = finishedCallback
+    self.popup_dismissedCallback = dismissedCallback
+
+    self.hidden = false
+    self.context.timer:tween(self.duration, self,self.animated_to, self.context.timer.elastic_in_out, function ()
+            for key, value in pairs(self.animated_to) do
+                self[key] = value
+            end
+            if finishedCallback then
+                finishedCallback()
+            end
+            self.state = 'idle'
+    end)
+
+
 end
 
 function ModalWindow:dismiss()
-    self.zIndex = GUIContext.ZIndexGroup.NORMAL
-    if self.context then
-        self.context:popModal()
+    if self.state == 'animating' then return end
+    self.state = 'animating'
+
+    self.animated_from, self.animated_to = self.animated_to, self.animated_from
+    for key, value in pairs(self.animated_from) do
+        self[key] = value
     end
-    self.visible = false
+
+    self.context.timer:tween(self.duration, self,self.animated_to, self.context.timer.elastic_in_out, function ()
+        for key, value in pairs(self.animated_to) do
+            self[key] = value
+        end
+
+        self.zIndex = GUIContext.ZIndexGroup.NORMAL
+        if self.context then
+            self.context:popModal()
+        end
+        self.visible = false
+        self.state = 'idle'
+        if self.finishedCallback then
+            self.finishedCallback()
+        end
+    end)
+
+
+
 end
 
 return ModalWindow

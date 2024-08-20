@@ -3,7 +3,7 @@ local Object = require(cwd .. "Object")
 local InputEventUtils = require(cwd .. "InputEventUtils")
 local GUIContext = Object:extend()
 GUIContext.EventType = InputEventUtils.EventType
-
+local AnimateTimer = require(cwd .. "AnimateTimer")
 
 GUIContext.ZIndexGroupNames = {
     SHADOW = 'SHADOW',
@@ -77,8 +77,11 @@ function GUIContext:init()
     self.root = nil
     self.pointerX = 0
     self.pointerY = 0
+    self.timer = AnimateTimer()
 
     local w, h =  love.window.getMode()
+    self.w = w
+    self.h = h
     local GUIElement = require(cwd .. "GUIElement")
     local mainView = GUIElement(0, 0, w, h)
     self:setRoot(mainView)
@@ -108,6 +111,7 @@ function GUIContext:update(dt)
     if self.root then
         self.root:update(dt)
     end
+    self.timer:update(dt)
 end
 
 function GUIContext:pushModal(modalElement)
