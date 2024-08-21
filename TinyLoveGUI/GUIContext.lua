@@ -114,6 +114,45 @@ function GUIContext:update(dt)
     self.timer:update(dt)
 end
 
+function GUIContext:elementAtPosition(x, y)
+    local elements = self:getAllElementsAtPosition(x, y)
+    table.sort(elements, function(a, b)
+        if a.zIndex == nil or b.zIndex == nil then
+            return false
+        end
+
+        if a.zIndex == b.zIndex then
+            return a.zIndex > b.zIndex
+        end
+        return a.zIndex > b.zIndex
+    end)
+    return elements[#elements]
+end
+
+function GUIContext:getAllElementsAtPosition(x, y)
+    local elements = {}
+    
+    -- -- Check modal windows first
+    -- for i = #self.modalStack, 1, -1 do
+    --     local modalElement = self.modalStack[i]
+    --     local modalElements = modalElement:getAllElementsAtPosition(x, y)
+    --     for _, element in ipairs(modalElements) do
+    --         table.insert(elements, element)
+    --     end
+    -- end
+    
+    -- -- Then check the root element and its children
+    -- if self.root then
+    --     local rootElements = self.root:getAllElementsAtPosition(x, y)
+    --     for _, element in ipairs(rootElements) do
+    --         table.insert(elements, element)
+    --     end
+    -- end
+    
+    -- return elements
+    return self.root:getAllElementsAtPosition(x, y)
+end
+
 function GUIContext:pushModal(modalElement)
     table.insert(self.modalStack, modalElement)
     modalElement:setZIndex(GUIContext.ZIndexGroup.MODAL_WINDOW)
@@ -192,6 +231,7 @@ function GUIContext:mousepressed(x, y, button)
 end
 
 function GUIContext:mousemoved(x, y, dx, dy)
+    self.root:updatePointerState(x, y)
     local event = InputEventUtils.InputEvent.mousemoved(x, y, dx, dy)
     return self:handleInput(event)
 end
@@ -207,6 +247,7 @@ function GUIContext:touchpressed(id, x, y, dx, dy, pressure)
 end
 
 function GUIContext:touchmoved(id, x, y, dx, dy, pressure)
+    self.root:updatePointerState(x, y)
     local event = InputEventUtils.InputEvent.touchmoved(id, x, y, dx, dy, pressure)
     return self:handleInput(event)
 end

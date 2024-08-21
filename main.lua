@@ -1,3 +1,7 @@
+if os.getenv("LOCAL_LUA_DEBUGGER_VSCODE") == "1" then
+    require("lldebugger").start()
+end
+
 local TinyLoveGUI = require('TinyLoveGUI')
 
 local GUIElement = TinyLoveGUI.GUIElement
@@ -15,9 +19,7 @@ local PopupMenu = TinyLoveGUI.PopupMenu
 local MenuItem = PopupMenu.MenuItem
 local ModalWindow = TinyLoveGUI.ModalWindow
 local GUIContext = TinyLoveGUI.GUIContext
-if os.getenv("LOCAL_LUA_DEBUGGER_VSCODE") == "1" then
-    require("lldebugger").start()
-end
+
 local myProgressBar
 
 local w, h =  love.window.getMode()
@@ -29,6 +31,8 @@ local function createGUI()
         normalColor = {0.2, 0.6, 0.8, 1},
         hoverColor = {0.3, 0.7, 0.9, 1},
         pressedColor = {0.1, 0.5, 0.7, 1},
+        tooltips_enabled = true,
+        tooltips_text = "This is a tooltip!",
         onClick = function()
             PopupMessage.show(context, "Hello, World!", 3)  -- Shows for 5 seconds
             myProgressBar.value = math.min(myProgressBar.value + 5,100)
@@ -39,6 +43,8 @@ local function createGUI()
         normalColor = {0.2, 0.6, 0.8, 1},
         hoverColor = {0.3, 0.7, 0.9, 1},
         pressedColor = {0.1, 0.5, 0.7, 1},
+        tooltips_enabled = true,
+        tooltips_text = "This is second button!",
         onClick = function()
             print("Button clicked!")
             myProgressBar.value = 0
@@ -211,11 +217,18 @@ local function createGUI()
    -- Add the context menu to mainView
    context:addChild(contextMenu)
 
+
    --right-click handler to mainView
    context:setOnRightClick(function(self, x, y)
     --    contextMenu.x = x
     --    contextMenu.y = y
-       contextMenu:show(x, y)
+       --contextMenu:show(x, y)
+
+       local element = context:elementAtPosition(x, y)
+       local element_x, element_y = element:getGlobalPosition()
+
+       local popup = TinyLoveGUI.PopupWindow.show(context, element_x, element_y, element.width, element.height, 100, 100, "This is a popup!")
+       --popup:setTarget(element.x, element.y, element.width, element.height)
    end)
 
 
@@ -454,6 +467,7 @@ end
 
 function love.update(dt)
     gui:update(dt)
+    gui:updateMousePosition(love.mouse.getPosition())
 end
 
 function love.draw()

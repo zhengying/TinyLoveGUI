@@ -25,10 +25,13 @@ local InputEventUtils = require(cwd .. "InputEventUtils")
 local EventType = InputEventUtils.EventType  
 local InputEvent = InputEventUtils.InputEvent
 local GUIContext = require(cwd .. "GUIContext")
+local PopupWindow = require(cwd .. "PopupWindow")
+local TooltipsMixin = require(cwd .. "TooltipsMixin")
 
 
 -- Button: A clickable GUI element
 local Button = GUIElement:extend()
+Button:implement(TooltipsMixin)
 
 ---@class ButtonOptions
 ---@field mode? string
@@ -42,7 +45,8 @@ local Button = GUIElement:extend()
 ---@field hoverImage? love.Image
 ---@field pressedImage? love.Image
 ---@field onClick? function
-
+---@field tooltips_enabled? boolean
+---@field tooltips_text? string
 ---@param x number
 ---@param y number
 ---@param width number
@@ -51,6 +55,7 @@ local Button = GUIElement:extend()
 function Button:init(x, y, width, height, options)
     Button.super.init(self, x, y, width, height)
     self.options = options or {}
+    TooltipsMixin.TooltipsMixin_init(self, options)
     self.mode = self.options.mode or "simple"
     self.text = self.options.text or ""
     self.font = self.options.font or love.graphics.getFont()
@@ -103,29 +108,13 @@ function Button:draw()
     love.graphics.pop()
 end
 
-function Button:onInput(event)
-    if event.type == EventType.MOUSE_PRESSED then
-        return self:handlePress(event.data.x, event.data.y, event.data.button)
-    elseif event.type == EventType.MOUSE_RELEASED then
-        return self:handleRelease(event.data.x, event.data.y, event.data.button)
-    elseif event.type == EventType.TOUCH_PRESSED then
-        return self:handlePress(event.data.x, event.data.y)
-    elseif event.type == EventType.TOUCH_RELEASED then
-        return self:handleRelease(event.data.x, event.data.y)
-    elseif event.type == EventType.KEY_PRESSED and self:isFocused() then
-        return self:handleKeyPress(event.data.key)
-    end
-    return false
-end
-
-
-function Button:handlePress(x, y, button)
+local function handlePress(self, x, y, button)
     if button and button ~= 1 then return false end  -- Only handle left mouse button
     self:_stateChanged(GUIContext.State.PRESSED)
     return true
 end
 
-function Button:handleRelease(x, y, button)
+local function handleRelease(self, x, y, button)
     if button and button ~= 1 then return false end  -- Only handle left mouse button
     if self.state == GUIContext.State.PRESSED then
         self:_stateChanged(GUIContext.State.HOVER)
@@ -134,7 +123,15 @@ function Button:handleRelease(x, y, button)
     return true
 end
 
-function Button:handleKeyPress(key)
+local function handleHover(self, x, y)
+    self:_stateChanged(GUIContext.State.HOVER)
+    -- if self.tooltips_enabled then
+    --     self:showTooltip()
+    -- end
+    return true
+end
+
+local function handleKeyPress(self, key)
     if key == "return" or key == "space" then
         self:_stateChanged(GUIContext.State.PRESSED)
         self.onClick()
@@ -144,10 +141,28 @@ function Button:handleKeyPress(key)
     return false
 end
 
--- You can keep this method for backwards compatibility if needed
-function Button:onMousepressed(x, y, button)
-    return self:handlePress(x, y, button)
+function Button:onInput(event)
+    if event.type == EventType.MOUSE_PRESSED then
+        return handlePress(self, event.data.x, event.data.y, event.data.button)  
+    elseif event.type == EventType.MOUSE_RELEASED then
+        return handleRelease(self, event.data.x, event.data.y, event.data.button)
+    elseif event.type == EventType.TOUCH_PRESSED then
+        return handlePress(self, event.data.x, event.data.y)
+    elseif event.type == EventType.TOUCH_RELEASED then
+        return handleRelease(self, event.data.x, event.data.y)
+    elseif event.type == EventType.MOUSE_MOVED then
+        return handleHover(self, event.data.x, event.data.y)    
+    elseif event.type == EventType.KEY_PRESSED and self:isFocused() then
+        return handleKeyPress(self, event.data.key)
+    end
+    return false
 end
+
+
+-- -- You can keep this method for backwards compatibility if needed
+-- function Button:onMousepressed(x, y, button)
+--     return self:handlePress(x, y, button)
+-- end
 
 
 return Button

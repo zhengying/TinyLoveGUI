@@ -37,6 +37,7 @@ local FlowLayout = require(cwd .. "FlowLayout")
 local PopupMenu = require(cwd .. "PopupMenu")
 local ModalWindow  = require(cwd .. "ModalWindow")
 local GUIContext = require(cwd .. "GUIContext")
+local PopupWindow = require(cwd .. "PopupWindow")
 
 
 return {
@@ -52,5 +53,6 @@ return {
     FlowLayout = FlowLayout,
     PopupMenu = PopupMenu,
     ModalWindow = ModalWindow,
-    GUIContext = GUIContext
+    GUIContext = GUIContext,
+    PopupWindow = PopupWindow,
 }

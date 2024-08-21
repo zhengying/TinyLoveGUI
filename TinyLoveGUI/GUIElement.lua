@@ -67,6 +67,11 @@ function GUIElement:init(x, y, width, height, bgcolor)
     self.y = y or 0
     self.width = width or 100
     self.height = height or 100
+    -- if type(self.width) ~= "number" or type(self.height) ~= "number" then
+    --     print("Warning: GUIElement initialized with invalid dimensions", self.tag, self.width, self.height)
+    --     self.width = self.width or 100
+    --     self.height = self.height or 100
+    -- end
     self.children = {}
     self.parent = nil
     self.bgcolor = bgcolor or {r=0.5,g=0.5,b=0.5}
@@ -134,12 +139,46 @@ end
 --     -- end
 --     self.context:setFocus(nil)
 -- end
+
+function GUIElement:getAllElementsAtPosition(x, y)
+    local elements = {}
+    
+    -- Check if the point is within this element's bounds
+    if self.tag == "FlowLayout" then
+        print("FlowLayout:getAllElementsAtPosition", x, y)
+    end
+    if self:containsPoint(x, y) and self.visible then
+        table.insert(elements, self)
+        
+        -- Check children
+        for i = #self.children, 1, -1 do
+            local child = self.children[i]
+            local childElements = child:getAllElementsAtPosition(x - self.x, y - self.y)
+            for _, element in ipairs(childElements) do
+                table.insert(elements, element)
+            end
+        end
+    end
+    
+    return elements
+end
+
+function GUIElement:containsPoint(x, y)
+    return self:isPointInside(x, y)
+end
+
 function GUIElement:onFocusGained()
     -- Override this method in subclasses to handle gaining focus
 end
 
 function GUIElement:onFocusLost()
     -- Override this method in subclasses to handle losing focus
+end
+
+function GUIElement:removeFromParent()
+    if self.parent then
+        self.parent:removeChild(self)
+    end
 end
 
 function GUIElement:setZIndex(zIndex)
@@ -224,6 +263,37 @@ function GUIElement:update(dt)
     end
 end
 
+function GUIElement:updatePointerState(x, y)
+    local isInside = self:isPointInside(x, y)
+    local wasInside = self.pointerInside or false
+
+    if isInside and not wasInside then
+        self:pointerEnter()
+    elseif not isInside and wasInside then
+        self:pointerLeave()
+    end
+
+    -- Update children
+    for _, child in ipairs(self.children) do
+        child:updatePointerState(x - self.x, y - self.y)
+    end
+
+    self.pointerInside = isInside
+end
+
+function GUIElement:pointerEnter()
+    self.pointerInside = true
+    if self.onPointerEnter then
+        self:onPointerEnter()
+    end
+end
+
+function GUIElement:pointerLeave()
+    self.pointerInside = false
+    if self.onPointerLeave then
+        self:onPointerLeave()
+    end
+end
 
 local function handlePositionalInput(self, event)
     if not self:isPointInside(event.data.x, event.data.y) then
