@@ -81,7 +81,7 @@ function GUIElement:init(x, y, width, height, bgcolor)
     self.DEBUG_DRAW = DEBUG_DRAW
     self.context = nil
     -- focus
-    self.focusable = false
+    self.focusable = true
     -- self.focused = false
 
     self.visible = true  -- New property to control visibility
@@ -313,7 +313,7 @@ local function handlePositionalInput(self, event)
             local localEvent = InputEvent(event.type, localData)
             handled = child:handleInput(localEvent)
             if handled then
-                if child:isFocusable() and (event.type == EventType.MOUSE_PRESSED or event.type == EventType.TOUCH_PRESSED) then
+                if child:isFocusable() and (event.type == EventType.MOUSE_MOVED or event.type == EventType.MOUSE_PRESSED or event.type == EventType.TOUCH_PRESSED) then
                     child:setFocus()
                 end
                 break
@@ -322,6 +322,7 @@ local function handlePositionalInput(self, event)
     end
 
     if not handled then
+        self.context.debug_print_log("==== current handled:" .. self.tag)
         handled = self:onInput(event)
         if handled and self:isFocusable() and (event.type == EventType.MOUSE_PRESSED or event.type == EventType.TOUCH_PRESSED) then
             self:setFocus()

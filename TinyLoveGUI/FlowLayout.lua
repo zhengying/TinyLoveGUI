@@ -53,6 +53,7 @@ function FlowLayout:init(x, y, width, height, bgcolor, padding, margin, alignmen
     self.tag = "FlowLayout"
     self.autoWidth = false
     self.autoHeight = false
+    self.focusable = false
 
     if margin == nil then
         self.margin = {left=0, right=0, top=0, bottom=0}
