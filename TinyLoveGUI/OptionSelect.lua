@@ -28,6 +28,9 @@ local GUIContext = require(cwd .. "GUIContext")
 local InputEventUtils = require(cwd .. "InputEventUtils")
 local EventType = InputEventUtils.EventType    
 local InputEvent = InputEventUtils.InputEvent
+local TooltipsMixin = require(cwd .. "TooltipsMixin")
+
+OptionSelect:implement(TooltipsMixin)
 
 function OptionSelect:init(x, y, width, height, options, defaultOption)
     OptionSelect.super.init(self, x, y, width, height)
@@ -42,6 +45,9 @@ function OptionSelect:init(x, y, width, height, options, defaultOption)
     self.scrollbarWidth = 10  -- New: Width of the scrollbar
     -- Default Z-index is already set in GUIElement:new()
     self.tag = 'OptionSelect'
+    self.highligtable = true
+
+    TooltipsMixin.TooltipsMixin_init(self, options)
 end
 
 function OptionSelect:draw()

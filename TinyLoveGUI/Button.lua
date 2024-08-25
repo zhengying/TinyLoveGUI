@@ -60,6 +60,7 @@ function Button:init(x, y, width, height, options)
     self.text = self.options.text or ""
     self.font = self.options.font or love.graphics.getFont()
     self.textColor = self.options.textColor or {1, 1, 1, 1}
+    self.highligtable = true
     
     if self.mode == "simple" then
         self.colors = {
@@ -141,6 +142,22 @@ local function handleKeyPress(self, key)
     return false
 end
 
+function Button:onPointerEnter()
+    self:_stateChanged(GUIContext.State.HOVER)
+    return true
+end
+
+function Button:onPointerLeave()
+    self:_stateChanged(GUIContext.State.NORMAL)
+    return true
+end
+
+-- local function handleHover(self,x, y)
+--     self.context:setHighlight(self)
+--     self:_stateChanged(GUIContext.State.HOVER)
+--     return true
+-- end
+
 function Button:onInput(event)
     if event.type == EventType.MOUSE_PRESSED then
         return handlePress(self, event.data.x, event.data.y, event.data.button)  
@@ -150,8 +167,8 @@ function Button:onInput(event)
         return handlePress(self, event.data.x, event.data.y)
     elseif event.type == EventType.TOUCH_RELEASED then
         return handleRelease(self, event.data.x, event.data.y)
-    elseif event.type == EventType.MOUSE_MOVED then
-        return handleHover(self, event.data.x, event.data.y)    
+    -- elseif event.type == EventType.MOUSE_MOVED then
+    --     return handleHover(self, event.data.x, event.data.y)    
     elseif event.type == EventType.KEY_PRESSED and self:isFocused() then
         return handleKeyPress(self, event.data.key)
     end

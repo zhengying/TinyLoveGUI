@@ -5,6 +5,8 @@ local GUIContext = Object:extend()
 GUIContext.EventType = InputEventUtils.EventType
 local AnimateTimer = require(cwd .. "AnimateTimer")
 
+
+
 GUIContext.ZIndexGroupNames = {
     SHADOW = 'SHADOW',
     NORMAL = 'NORMAL',
@@ -23,6 +25,10 @@ GUIContext.State = {
     NORMAL = "normal",
     HOVER = "hover",
     PRESSED = "pressed"
+  }
+
+  GUIContext.LocalEvents = {
+    HIGHLIGHT_CHANGED = "HIGHLIGHT_CHANGED",
   }
 
 GUIContext.DEBUG_ALL = true
@@ -73,11 +79,13 @@ end
 
 function GUIContext:init()
     self.focusedElement = nil
+    self.highlightElement = nil
     self.modalStack = {}
     self.root = nil
     self.pointerX = 0
     self.pointerY = 0
     self.timer = AnimateTimer()
+    self.event_listeners = {}
 
     local w, h =  love.window.getMode()
     self.w = w
@@ -85,11 +93,80 @@ function GUIContext:init()
     local GUIElement = require(cwd .. "GUIElement")
     local mainView = GUIElement(0, 0, w, h)
     self:setRoot(mainView)
-    mainView:setAsRoot(self)
+end
+
+
+function GUIContext:registerLocalEvent(name,target,callback)
+    assert(name,'event name should be not nil')
+    assert(callback, 'event callback should be not nil')
+    assert(target, 'target callback should be not nil')
+
+    if not self.event_listeners[name] then
+        self.event_listeners[name] = {}
+    end
+
+    for _, value in ipairs(self.event_listeners) do
+        if value.name == name and value.target == target and value.callback == callback then
+            self.debug_print_error('duplicating event:' .. name)
+            return false
+        end
+    end
+
+    table.insert(self.event_listeners[name], {callback = callback, target = target})
+    return true
+end
+
+function GUIContext:emitLocalEvent(name, data)
+    for k, v in pairs(self.event_listeners) do
+        if k == name then
+            for k, v in ipairs(v) do
+                local callback, target = v.callback, v.target
+                callback(target, data)
+            end
+
+        end
+    end
+end
+
+function GUIContext:unregisterLocalEvent(name, target)
+    for i = #self.event_liseners, 1, -1 do
+        if self.event_liseners[i].name == name then
+            if target and self.event_liseners[i].target == target  then
+                table.remove(self.event_liseners, i)
+                return
+            end
+            table.remove(self.event_liseners, i)
+        end
+    end
+    return
+end
+
+function GUIContext:setHighlight(element)
+    if element ~= nil and element ~=  self.highlightElement then
+        self.highlightElement = element
+        if self.highlightElement.onPointerLeave then
+            self.highlightElement:onPointerEnter()
+        end
+        self:emitLocalEvent(self.LocalEvents.HIGHLIGHT_CHANGED,element)
+    end
+    self.highlightElement = element
+end
+
+function GUIContext:clearHighlight()
+    if self.highlightElement == nil then return end
+
+    if self.highlightElement.onPointerLeave then
+        self.highlightElement:onPointerLeave()
+    end
+
+    self:emitLocalEvent(self.LocalEvents.HIGHLIGHT_CHANGED,nil)
+
+    self.highlightElement = nil
 end
 
 function GUIContext:setRoot(rootElement)
     self.root = rootElement
+    rootElement:setContext(self)
 end
 
 function GUIContext:setFocus(element)
@@ -198,7 +275,18 @@ function GUIContext:checkKeyPress(keycode)
     end
 end
 
+function GUIContext:handleHighlight(event)
+    if InputEventUtils.hasPosition(event) then
+        if self.highlightElement then
+            if not self.highlightElement:isPointInside(event.data.x, event.data.y) then
+                self:clearHighlight()
+            end
+        end
+    end
+end
+
 function GUIContext:handleInput(event)
+    self:handleHighlight(event)
     if self:hasModalWindow() then
         local modalWindow = self:getTopModal()
         local blhandled = modalWindow:handleInput(event)
@@ -231,7 +319,7 @@ function GUIContext:mousepressed(x, y, button)
 end
 
 function GUIContext:mousemoved(x, y, dx, dy)
-    self.root:updatePointerState(x, y)
+    --self.root:updatePointerState(x, y)
     local event = InputEventUtils.InputEvent.mousemoved(x, y, dx, dy)
     return self:handleInput(event)
 end
@@ -247,7 +335,6 @@ function GUIContext:touchpressed(id, x, y, dx, dy, pressure)
 end
 
 function GUIContext:touchmoved(id, x, y, dx, dy, pressure)
-    self.root:updatePointerState(x, y)
     local event = InputEventUtils.InputEvent.touchmoved(id, x, y, dx, dy, pressure)
     return self:handleInput(event)
 end

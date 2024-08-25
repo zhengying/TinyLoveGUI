@@ -82,14 +82,17 @@ function GUIElement:init(x, y, width, height, bgcolor)
     self.context = nil
     -- focus
     self.focusable = true
+    self.highligtable = false
     -- self.focused = false
 
     self.visible = true  -- New property to control visibility
 end
 
-
-function GUIElement:setAsRoot(context)
+function GUIElement:setContext(context)
     self.context = context
+    if self.onAddToContext then
+        self.onAddToContext()
+    end
 end
 
 function GUIElement:hide()
@@ -263,37 +266,37 @@ function GUIElement:update(dt)
     end
 end
 
-function GUIElement:updatePointerState(x, y)
-    local isInside = self:isPointInside(x, y)
-    local wasInside = self.pointerInside or false
+-- function GUIElement:updatePointerState(x, y)
+--     local isInside = self:isPointInside(x, y)
+--     local wasInside = self.pointerInside or false
 
-    if isInside and not wasInside then
-        self:pointerEnter()
-    elseif not isInside and wasInside then
-        self:pointerLeave()
-    end
+--     if isInside and not wasInside then
+--         self:pointerEnter()
+--     elseif not isInside and wasInside then
+--         self:pointerLeave()
+--     end
 
-    -- Update children
-    for _, child in ipairs(self.children) do
-        child:updatePointerState(x - self.x, y - self.y)
-    end
+--     -- Update children
+--     for _, child in ipairs(self.children) do
+--         child:updatePointerState(x - self.x, y - self.y)
+--     end
 
-    self.pointerInside = isInside
-end
+--     self.pointerInside = isInside
+-- end
 
-function GUIElement:pointerEnter()
-    self.pointerInside = true
-    if self.onPointerEnter then
-        self:onPointerEnter()
-    end
-end
+-- function GUIElement:pointerEnter()
+--     self.pointerInside = true
+--     if self.onPointerEnter then
+--         self:onPointerEnter()
+--     end
+-- end
 
-function GUIElement:pointerLeave()
-    self.pointerInside = false
-    if self.onPointerLeave then
-        self:onPointerLeave()
-    end
-end
+-- function GUIElement:pointerLeave()
+--     self.pointerInside = false
+--     if self.onPointerLeave then
+--         self:onPointerLeave()
+--     end
+-- end
 
 local function handlePositionalInput(self, event)
     if not self:isPointInside(event.data.x, event.data.y) then
@@ -315,6 +318,11 @@ local function handlePositionalInput(self, event)
             if handled then
                 if child:isFocusable() and (event.type == EventType.MOUSE_MOVED or event.type == EventType.MOUSE_PRESSED or event.type == EventType.TOUCH_PRESSED) then
                     child:setFocus()
+                end
+                break
+            elseif child.highligtable == true then
+                if event.type == EventType.MOUSE_MOVED then
+                    self.context:setHighlight(child)
                 end
                 break
             end
