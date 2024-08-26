@@ -113,11 +113,10 @@ function OptionSelect:drawSelf()
 end
 
 local function handlePress(self, x, y, button)      
-    local localX, localY = self:toLocalCoordinates(x, y)
     
-    if self:containsPoint(localX, localY) then
+    if self:containsPoint(x, y) then
         if button == 1 then  -- Left mouse button
-            if localY < self.height then
+            if y < self.height then
                 self.isOpen = not self.isOpen
                 if self.isOpen then
                     self:setZIndex(GUIContext.ZIndexGroup.POPUP)
@@ -125,11 +124,11 @@ local function handlePress(self, x, y, button)
                     self:setZIndex(GUIContext.ZIndexGroup.NORMAL)
                 end
             elseif self.isOpen then
-                if localX > self.width - self.scrollbarWidth and #self.options > self.maxVisibleItems then
+                if  x > self.width - self.scrollbarWidth and #self.options > self.maxVisibleItems then
                     self.isDraggingScrollbar = true
-                    self:updateScrollFromMouseY(localY)
+                    self:updateScrollFromMouseY(y) 
                 else
-                    local index = math.floor((localY - self.height) / self.itemHeight) + 1 + self.scrollOffset
+                    local index = math.floor((y - self.height) / self.itemHeight) + 1 + self.scrollOffset
                     if index > 0 and index <= #self.options then
                         self.selectedOption = self.options[index]
                         self.selectedIndex = index
@@ -153,14 +152,13 @@ local function handlePress(self, x, y, button)
 end
 
 local function handleMove(self, x, y, dx, dy)
-    local localX, localY = self:toLocalCoordinates(x, y)
 
-    if self.isOpen and self:containsPoint(localX, localY) then
+    if self.isOpen and self:containsPoint(x, y) then
         if self.isDraggingScrollbar then
-            self:updateScrollFromMouseY(localY)
+            self:updateScrollFromMouseY(y)
             return true
-        elseif localY > self.height then
-            self.hoverIndex = math.floor((localY - self.height) / self.itemHeight) + 1 + self.scrollOffset
+        elseif y > self.height then
+            self.hoverIndex = math.floor((y - self.height) / self.itemHeight) + 1 + self.scrollOffset
             if self.hoverIndex > #self.options then
                 self.hoverIndex = nil
             end

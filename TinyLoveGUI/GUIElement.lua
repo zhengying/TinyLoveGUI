@@ -82,7 +82,8 @@ function GUIElement:init(x, y, width, height, bgcolor)
     self.context = nil
     -- focus
     self.focusable = true
-    self.highligtable = false
+    self.highligtable = true
+    self.cid = 0
     -- self.focused = false
 
     self.visible = true  -- New property to control visibility
@@ -152,7 +153,7 @@ function GUIElement:getAllElementsAtPosition(x, y)
     end
     if self:containsPoint(x, y) and self.visible then
         table.insert(elements, self)
-        
+        self:sortChildren()
         -- Check children
         for i = #self.children, 1, -1 do
             local child = self.children[i]
@@ -194,9 +195,12 @@ end
 function GUIElement:addChild(child)
     assert(child.parent == nil, "child.parent is already set")
     assert(self.context ~= nil, "parent context is not set")
+    assert(child.zIndex ~= GUIContext.ZIndexGroup.MODAL_WINDOW, "child zIndex is MODAL_WINDOW, ModalWindow should not be added to parent")
+
     table.insert(self.children, child)
     child.parent = self
     child.context = self.context
+    child.cid = self.context:nextCID()
     if child.onAddToContext then
         child:onAddToContext(self.context)
     end
@@ -255,6 +259,9 @@ end
 
 function GUIElement:sortChildren()
     table.sort(self.children, function(a, b)
+        if a.zIndex == b.zIndex then
+            return a.cid < b.cid
+        end
         return a.zIndex < b.zIndex
     end)
 end
@@ -299,15 +306,28 @@ end
 -- end
 
 local function handlePositionalInput(self, event)
-    if not self:isPointInside(event.data.x, event.data.y) then
+    if (not self:isPointInside(event.data.x, event.data.y)) or self.visible == false then
+        self.context.debug_print_log("==== not point inside:" .. self.tag)
         return false
     end
+
+    if event.type == EventType.MOUSE_PRESSED then
+        print("==== mouse pressed:" .. self.tag)
+    end
+
+    self.context.debug_print_log("==== point inside:" .. self.tag)
     
     local localX, localY = self:toLocalCoordinates(event.data.x, event.data.y)
     local handled = false
     for i = #self.children, 1, -1 do
         local child = self.children[i]
-        if child:isPointInside(localX, localY) then
+        if child:isPointInside(localX, localY) and child.visible == true then
+
+            if event.type == EventType.MOUSE_PRESSED then
+                print("==== mouse pressed:" .. self.tag)
+            end
+
+
             local localData = {}
             for k, v in pairs(event.data) do
                 localData[k] = v
@@ -316,6 +336,9 @@ local function handlePositionalInput(self, event)
             local localEvent = InputEvent(event.type, localData)
             handled = child:handleInput(localEvent)
             if handled then
+                if event.type == EventType.MOUSE_PRESSED then
+                    print("==== mouse pressed:" .. self.tag)
+                end
                 if child:isFocusable() and (event.type == EventType.MOUSE_MOVED or event.type == EventType.MOUSE_PRESSED or event.type == EventType.TOUCH_PRESSED) then
                     child:setFocus()
                 end

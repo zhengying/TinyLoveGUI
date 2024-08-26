@@ -30,6 +30,7 @@ function TooltipsMixin:TooltipsMixin_init(options)
 end
 
 
+
 function TooltipsMixin:onHighlightChanged(element)
     if not self.tooltips_enabled then
         return
@@ -45,7 +46,13 @@ function TooltipsMixin:onHighlightChanged(element)
 end
 
 function TooltipsMixin:showTooltip()
-    PopupWindow.showTooltip(self,self.tooltips_text, self.width, self.height, 'left')
+    if self.customShowTooltipAt then
+        -- TODO:
+        local localpos = self:tooltipPosition()
+        PopupWindow.customShowTooltipAt()
+    else
+        PopupWindow.showTooltip(self,self.tooltips_text, self.width, self.height, 'left')
+    end
     self.tooltips_showed = true
 end
 

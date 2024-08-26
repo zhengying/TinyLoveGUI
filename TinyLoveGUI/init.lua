@@ -55,4 +55,5 @@ return {
     ModalWindow = ModalWindow,
     GUIContext = GUIContext,
     PopupWindow = PopupWindow,
+    InputEventUtils = InputEventUtils,
 }

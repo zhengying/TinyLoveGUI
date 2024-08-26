@@ -86,6 +86,10 @@ function TextField:update(dt)
     end
 end
 
+function TextField:setText(text)
+    self.text = text
+end
+
 function TextField:onFocusGained()
     self.cursorVisible = true
     self.cursorBlinkTime = 0

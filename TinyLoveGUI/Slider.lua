@@ -24,9 +24,11 @@ local GUIElement = require(cwd .. "GUIElement")
 local InputEventUtils = require(cwd .. "InputEventUtils")
 local EventType = InputEventUtils.EventType  
 local InputEvent = InputEventUtils.InputEvent
+local TooltipsMixin = require(cwd .. "TooltipsMixin")
 
 -- Slider
 local Slider = GUIElement:extend()
+Slider:implement(TooltipsMixin)
 
 function Slider:init(x, y, width, height, min, max, value)
     Slider.super.init(self, x, y, width, height)

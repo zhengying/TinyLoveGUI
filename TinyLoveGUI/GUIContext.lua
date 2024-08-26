@@ -1,6 +1,8 @@
 local cwd = select(1, ...):match(".+%.") or ""
 local Object = require(cwd .. "Object")
 local InputEventUtils = require(cwd .. "InputEventUtils")
+
+---@class GUIContext
 local GUIContext = Object:extend()
 GUIContext.EventType = InputEventUtils.EventType
 local AnimateTimer = require(cwd .. "AnimateTimer")
@@ -86,6 +88,8 @@ function GUIContext:init()
     self.pointerY = 0
     self.timer = AnimateTimer()
     self.event_listeners = {}
+    self.cid_current = 0
+    
 
     local w, h =  love.window.getMode()
     self.w = w
@@ -95,6 +99,10 @@ function GUIContext:init()
     self:setRoot(mainView)
 end
 
+function GUIContext:nextCID()
+    self.cid_current = self.cid_current + 1
+    return self.cid_current
+end
 
 function GUIContext:registerLocalEvent(name,target,callback)
     assert(name,'event name should be not nil')
@@ -129,13 +137,13 @@ function GUIContext:emitLocalEvent(name, data)
 end
 
 function GUIContext:unregisterLocalEvent(name, target)
-    for i = #self.event_liseners, 1, -1 do
-        if self.event_liseners[i].name == name then
-            if target and self.event_liseners[i].target == target  then
-                table.remove(self.event_liseners, i)
+    for i = #self.event_listeners, 1, -1 do
+        if self.event_listeners[i].name == name then
+            if target and self.event_listeners[i].target == target  then
+                table.remove(self.event_listeners, i)
                 return
             end
-            table.remove(self.event_liseners, i)
+            table.remove(self.event_listeners, i)
         end
     end
     return
@@ -191,44 +199,44 @@ function GUIContext:update(dt)
     self.timer:update(dt)
 end
 
-function GUIContext:elementAtPosition(x, y)
-    local elements = self:getAllElementsAtPosition(x, y)
-    table.sort(elements, function(a, b)
-        if a.zIndex == nil or b.zIndex == nil then
-            return false
-        end
+-- function GUIContext:elementAtPosition(x, y)
+--     local elements = self:getAllElementsAtPosition(x, y)
+--     table.sort(elements, function(a, b)
+--         if a.zIndex == nil or b.zIndex == nil then
+--             return false
+--         end
 
-        if a.zIndex == b.zIndex then
-            return a.zIndex > b.zIndex
-        end
-        return a.zIndex > b.zIndex
-    end)
-    return elements[#elements]
-end
+--         if a.zIndex == b.zIndex then
+--             return a.zIndex > b.zIndex
+--         end
+--         return a.zIndex > b.zIndex
+--     end)
+--     return elements[#elements]
+-- end
 
-function GUIContext:getAllElementsAtPosition(x, y)
-    local elements = {}
+-- function GUIContext:getAllElementsAtPosition(x, y)
+--     local elements = {}
     
-    -- -- Check modal windows first
-    -- for i = #self.modalStack, 1, -1 do
-    --     local modalElement = self.modalStack[i]
-    --     local modalElements = modalElement:getAllElementsAtPosition(x, y)
-    --     for _, element in ipairs(modalElements) do
-    --         table.insert(elements, element)
-    --     end
-    -- end
+--     -- -- Check modal windows first
+--     -- for i = #self.modalStack, 1, -1 do
+--     --     local modalElement = self.modalStack[i]
+--     --     local modalElements = modalElement:getAllElementsAtPosition(x, y)
+--     --     for _, element in ipairs(modalElements) do
+--     --         table.insert(elements, element)
+--     --     end
+--     -- end
     
-    -- -- Then check the root element and its children
-    -- if self.root then
-    --     local rootElements = self.root:getAllElementsAtPosition(x, y)
-    --     for _, element in ipairs(rootElements) do
-    --         table.insert(elements, element)
-    --     end
-    -- end
+--     -- -- Then check the root element and its children
+--     -- if self.root then
+--     --     local rootElements = self.root:getAllElementsAtPosition(x, y)
+--     --     for _, element in ipairs(rootElements) do
+--     --         table.insert(elements, element)
+--     --     end
+--     -- end
     
-    -- return elements
-    return self.root:getAllElementsAtPosition(x, y)
-end
+--     -- return elements
+--     return self.root:getAllElementsAtPosition(x, y)    
+-- end
 
 function GUIContext:pushModal(modalElement)
     table.insert(self.modalStack, modalElement)

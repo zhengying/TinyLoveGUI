@@ -118,6 +118,10 @@ function TreeView:init(x, y, width, height)
     self:updateContentSize()
 end
 
+function TreeView:setRoot(root)
+    self.root = root
+end
+
 function TreeView:setDefaultGroupIcon(foldIcon, expandedIcon)
     TreeView.defaultFoldIcon = foldIcon
     TreeView.defaultExpandedIcon = expandedIcon
@@ -251,8 +255,7 @@ end
 local function handlePress(self, x, y, button)
     if button and button ~= 1 then return false end  -- Only handle left mouse button or touch
 
-    local localX, localY = self:toLocalCoordinates(x, y)
-    self.selectedNode = self:getNodeAt(localX + self.offsetX, localY + self.offsetY)
+    self.selectedNode = self:getNodeAt(x + self.offsetX, y + self.offsetY)
     if self.selectedNode then
         self.selectedNode:toggleExpanded()
         self:updateContentSize()
@@ -264,10 +267,9 @@ end
 
 local function handleMove(self, x, y, dx, dy)
     if not (self.isDraggingVerticalScrollbar or self.isDraggingHorizontalScrollbar) then
-        local localX, localY = self:toLocalCoordinates(x, y)
         -- Adjust localY by the vertical scroll offset
-        localY = localY + self.offsetY
-        self.hoveredNode = self:getNodeAt(localX, localY)
+        y = y + self.offsetY
+        self.hoveredNode = self:getNodeAt(x, y)
     else
         self.hoveredNode = nil  -- Clear hover state when dragging scrollbar
     end

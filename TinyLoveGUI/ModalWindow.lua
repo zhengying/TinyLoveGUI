@@ -4,10 +4,18 @@ local GUIContext = require(cwd .. "GUIContext")
 local EventType = GUIContext.EventType
 local ModalWindow = GUIElement:extend()
 
-function ModalWindow:init(x, y, width, height, options)
+
+---@param x number
+---@param y number
+---@param width number
+---@param height number
+---@param context GUIContext
+---@param options table
+function ModalWindow:init(x, y, width, height, context, options)
+    assert(context ~= nil, "context is nil")
     ModalWindow.super.init(self, x, y, width, height)
     self.tag = "ModalWindow"
-    
+    self.context = context
     options = options or {}
     self.backgroundColor = options.backgroundColor or {0.8, 0.8, 0.8, 1}
     self.borderColor = options.borderColor or {0.5, 0.5, 0.5, 1}
@@ -64,6 +72,7 @@ end
 local function handlePress(self, x, y, button)
     if self:isPointInside(x, y) == false then
         self:dismiss()
+        return true
     end
     return false
 end
@@ -246,7 +255,6 @@ end
 
 
 function ModalWindow:doModal(finishedCallback, dismissedCallback)
-
     if self.state == 'animating' then return end
     self:animation_init(self.context)
     self.state = 'animating'

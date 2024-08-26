@@ -41,6 +41,7 @@ function PopupMenu:init(x, y, width, height)
     self.selectedNode = nil
     self.hoveredNode = nil
     self.popupStack = {}
+    self.tag = "PopupMenu"
     self.visible = false
     -- self.onSelect = nil
 
@@ -85,6 +86,7 @@ function PopupMenu:show(x, y)
     self.y = y
     self.visible = true
     self.popupStack = {}
+    print('PopupMenu shown at (' .. self.x .. ',' .. self.y .. ')')
 end
 
 function PopupMenu:hide()
@@ -164,7 +166,9 @@ end
 
 local function handlePress(self, x, y)
     local node, menuIndex = self:getNodeAt(x, y)
+
     if node then
+        print('node:' .. tostring(node.tag) .. " menuIndex:" .. tostring(menuIndex))
         --self.selectedNode = node
         if not node:isGroup() then
             -- Leaf node selected, close menu and call callback if exists
@@ -182,7 +186,15 @@ local function handlePress(self, x, y)
 end
 
 local function handleMove(self, x, y)
+    print('PopupMenu handleMove: (' .. x .. ',' .. y .. ')')
+    
     local newHoveredNode, menuIndex = self:getNodeAt(x, y)
+    
+    if newHoveredNode then
+        print('Hovered node: ' .. tostring(newHoveredNode.title) .. " at menu index: " .. tostring(menuIndex))
+    else
+        print('No node hovered')
+    end
     
     if newHoveredNode ~= self.hoveredNode then
         self.hoveredNode = newHoveredNode
@@ -202,6 +214,7 @@ local function handleMove(self, x, y)
                 local submenuX = parentX + self:calculateMenuWidth(parentMenu)
                 local submenuY = parentY + (itemIndex - 1) * self.style.itemHeight
                 
+                print('Opening submenu at (' .. submenuX .. ',' .. submenuY .. ')')
                 table.insert(self.popupStack, {node = self.hoveredNode, x = submenuX, y = submenuY})
             end
         else
@@ -209,7 +222,8 @@ local function handleMove(self, x, y)
             self.popupStack = {}
         end
     end
-    return true
+    
+    return newHoveredNode ~= nil
 end
 
 function PopupMenu:handleInput(event)
@@ -226,35 +240,44 @@ end
 
 function PopupMenu:getNodeAt(x, y)
     local localX, localY = x - self.x, y - self.y
+    print('getNodeAt: global(' .. x .. ',' .. y .. '), local(' .. localX .. ',' .. localY .. ')')
     
     -- Check submenus first (in reverse order)
     for i = #self.popupStack, 1, -1 do
         local submenu = self.popupStack[i]
+        print('Checking submenu ' .. i .. ' at (' .. submenu.x .. ',' .. submenu.y .. ')')
         if self:isPointInMenu(localX, localY, submenu) then
             local relativeY = localY - submenu.y
             local index = math.floor(relativeY / self.style.itemHeight) + 1
             if index > 0 and index <= #submenu.node.groupStatus.children then
+                print('Found node in submenu ' .. i .. ' at index ' .. index)
                 return submenu.node.groupStatus.children[index], i
             end
         end
     end
 
     -- Check root menu
+    print('Checking root menu')
     if self:isPointInMenu(localX, localY, {node = self.root, x = 0, y = 0}) then
         local index = math.floor(localY / self.style.itemHeight) + 1
         if index > 0 and index <= #self.root.groupStatus.children then
+            print('Found node in root menu at index ' .. index)
             return self.root.groupStatus.children[index], 0
         end
     end
     
+    print('No node found')
     return nil, nil
 end
 
 function PopupMenu:isPointInMenu(x, y, menu)
     local menuWidth = self:calculateMenuWidth(menu.node)
     local menuHeight = #menu.node.groupStatus.children * self.style.itemHeight
-    return x >= menu.x and x <= menu.x + menuWidth and
-           y >= menu.y and y <= menu.y + menuHeight
+    local isInMenu = x >= menu.x and x <= menu.x + menuWidth and
+                     y >= menu.y and y <= menu.y + menuHeight
+    print('isPointInMenu: (' .. x .. ',' .. y .. ') in menu at (' .. menu.x .. ',' .. menu.y .. 
+          ') with size ' .. menuWidth .. 'x' .. menuHeight .. ': ' .. tostring(isInMenu))
+    return isInMenu
 end
 
 function PopupMenu:findNodeIndex(parentNode, targetNode)

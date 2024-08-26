@@ -9,6 +9,20 @@ PopupWindow.currentTooltip = nil
 PopupWindow.currentTarget = nil
 
 function PopupWindow:init(x, y, width, height, text, targetX, targetY, targetWidth, targetHeight, arrowDirection)
+    local maxWidth = width or 300
+    self.font = love.graphics.newFont(12)
+    self.padding = 5
+
+    -- Create a text object with wrapping
+    self.textObject = love.graphics.newText(self.font, text)
+    self.textObject:setf(text, maxWidth - 2 * self.padding, "left")
+    -- Get the actual dimensions of the wrapped text
+    local textWidth, textHeight = self.textObject:getDimensions()
+    
+    -- Adjust the popup size based on the text dimensions
+    width = math.max(width or 0, textWidth + 2 * self.padding)
+    height = math.max(height or 0, textHeight + 2 * self.padding)
+
     PopupWindow.super.init(self, x, y, width, height)
     self.text = text or ""
     self.targetX = targetX
@@ -19,8 +33,8 @@ function PopupWindow:init(x, y, width, height, text, targetX, targetY, targetWid
     self.backgroundColor = {0.9, 0.9, 0.9, 0.9}
     self.borderColor = {0.5, 0.5, 0.5, 1}
     self.textColor = {0, 0, 0, 1}
-    self.font = love.graphics.newFont(12)
-    self.padding = 5
+
+
     self.zIndex = GUIContext.ZIndexGroup.POPUP
     self.tag = "PopupWindow"
     self.arrowDirection = arrowDirection or "auto"
@@ -30,6 +44,9 @@ function PopupWindow:init(x, y, width, height, text, targetX, targetY, targetWid
     self.maxArrowLength = 10
     self.cornerGap = 20
     self.visible = false
+
+    
+ 
 end
 
 function PopupWindow:draw()
@@ -53,7 +70,8 @@ function PopupWindow:draw()
     -- Draw text
     love.graphics.setColor(unpack(self.textColor))
     love.graphics.setFont(self.font)
-    love.graphics.printf(self.text, self.padding, self.padding, self.width - 2 * self.padding, "left")
+    --love.graphics.printf(self.text, self.padding, self.padding, self.width - 2 * self.padding, "left")
+    love.graphics.draw(self.textObject, self.padding, self.padding)
     
     love.graphics.pop()
 end

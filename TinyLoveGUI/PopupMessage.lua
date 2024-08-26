@@ -39,6 +39,7 @@ function PopupMessage:init(x, y, width, height, message, duration)
     self.font = love.graphics.newFont(self.fontSize)
     self.tag = "PopupMessage"
     self.zIndex = GUIContext.ZIndexGroup.POPUP --GUIElement.ZIndexGroup.Popup
+    self.highligtable = false
 end
 
 function PopupMessage:update(dt)
