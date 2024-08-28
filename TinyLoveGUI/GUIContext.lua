@@ -79,7 +79,8 @@ function GUIContext:addChild(element)
     self.root:addChild(element)
 end
 
-function GUIContext:init()
+function GUIContext:init(x, y, width, height)
+    GUIContext.super.init(self, x, y, width, height)
     self.focusedElement = nil
     self.highlightElement = nil
     self.modalStack = {}
@@ -92,10 +93,10 @@ function GUIContext:init()
     
 
     local w, h =  love.window.getMode()
-    self.w = w
-    self.h = h
+    self.width = width or w
+    self.hight = height or h
     local GUIElement = require(cwd .. "GUIElement")
-    local mainView = GUIElement(0, 0, w, h)
+    local mainView = GUIElement(0, 0, width, height)
     self:setRoot(mainView)
 end
 
@@ -373,5 +374,12 @@ function GUIContext:wheelmoved(dx, dy)
     return self:handleInput(event)
 end
 
+
+function GUIContext:resize(width, height)
+    self.width = width
+    self.height = height
+
+    self.root:resize(width, height)
+end
 
 return GUIContext

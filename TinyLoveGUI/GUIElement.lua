@@ -85,6 +85,7 @@ function GUIElement:init(x, y, width, height, bgcolor)
     self.highligtable = true
     self.cid = 0
     -- self.focused = false
+    self.padding = {left=0, right=0, top=0, bottom=0}
 
     self.visible = true  -- New property to control visibility
 end
@@ -122,6 +123,34 @@ end
 
 function GUIElement:setFocus()
     self.context:setFocus(self)
+end
+
+function GUIElement:resize(width, height)
+    local oldWidth, oldHeight = self.width, self.height
+    self.width = width
+    self.height = height
+    
+    -- Calculate the available space for children, considering padding
+    local childWidth = width - (self.padding.left + self.padding.right)
+    local childHeight = height - (self.padding.top + self.padding.bottom)
+    
+    -- Notify children of the resize
+    for _, child in ipairs(self.children) do
+        if child.onParentResize then
+            -- Pass the available child width and height, excluding margin
+            child:onParentResize(childWidth, childHeight)
+        end
+    end
+    
+    -- Call onResize if it exists
+    if self.onResize then
+        self:onResize(oldWidth, oldHeight, width, height)
+    end
+end
+
+function GUIElement:onParentResize(parentWidth, parentHeight)
+    -- Default implementation does nothing
+    -- Subclasses can override this to respond to parent resizing
 end
 
 -- function GUIElement:setFocus()
@@ -235,7 +264,7 @@ function GUIElement:draw()
 
     if self.DEBUG_DRAW then
         love.graphics.setColor(1, 1, 1)
-        local w, h = self:getRealSize()
+        local w, h = self:getSize()
         love.graphics.rectangle("line", self.x, self.y, w, h)
         love.graphics.setColor(1, 1, 1)
     end
@@ -430,13 +459,13 @@ function GUIElement:isPointInside(x, y, dx, dy)
     dx = dx or 0  -- Default to 0 if not provided
     dy = dy or dx  -- Use dx for dy if dy is not provided
 
-    local w, h = self:getRealSize()
+    local w, h = self:getSize()
     return x >= (self.x - dx) and x <= (self.x + w + dx) and
            y >= (self.y - dy) and y <= (self.y + h + dy)
 end
 
 
-function GUIElement:getRealSize()
+function GUIElement:getSize()
     return self.width, self.height
 end
 
