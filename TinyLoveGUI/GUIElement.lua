@@ -78,7 +78,7 @@ function GUIElement:init(x, y, width, height, bgcolor)
     self.state = GUIContext.State.NORMAL
     self.tag = "GUIElement"
     self.zIndex = GUIContext.ZIndexGroup.NORMAL
-    self.DEBUG_DRAW = DEBUG_DRAW
+    self.DEBUG_DRAW = true
     self.context = nil
     -- focus
     self.focusable = true
@@ -221,6 +221,14 @@ function GUIElement:setZIndex(zIndex)
     end
 end
 
+function GUIElement:getHeight()
+    return self.height
+end
+
+function GUIElement:getWidth()
+    return self.width
+end 
+
 function GUIElement:addChild(child)
     assert(child.parent == nil, "child.parent is already set")
     assert(self.context ~= nil, "parent context is not set")
@@ -241,7 +249,7 @@ function GUIElement:_stateChanged(new_state)
         GUIContext.debug_print_log("! new state is nil")
     end
     if self.state ~= new_state then
-       GUIContext.debug_print_log("tag:"..self.tag .. " state changed:" .. self.state .. '~>' .. new_state)
+       --GUIContext.debug_print_log("tag:"..self.tag .. " state changed:" .. self.state .. '~>' .. new_state)
     end
 
     self.state = new_state
@@ -258,6 +266,9 @@ function GUIElement:removeChild(child)
 end
 
 function GUIElement:draw()
+    if self.tag == 'FlowLayout' and self.children[1].tag == 'Button' then
+        print("button here!")
+    end
     if not self.visible then return end  -- Skip drawing if not visible
 
     love.graphics.push()
@@ -336,15 +347,15 @@ end
 
 local function handlePositionalInput(self, event)
     if (not self:isPointInside(event.data.x, event.data.y)) or self.visible == false then
-        self.context.debug_print_log("==== not point inside:" .. self.tag)
+        --self.context.debug_print_log("==== not point inside:" .. self.tag)
         return false
     end
 
-    if event.type == EventType.MOUSE_PRESSED then
-        print("==== mouse pressed:" .. self.tag)
-    end
+    -- if event.type == EventType.MOUSE_PRESSED then
+    --     print("==== mouse pressed:" .. self.tag)
+    -- end
 
-    self.context.debug_print_log("==== point inside:" .. self.tag)
+    -- self.context.debug_print_log("==== point inside:" .. self.tag)
     
     local localX, localY = self:toLocalCoordinates(event.data.x, event.data.y)
     local handled = false
@@ -352,9 +363,9 @@ local function handlePositionalInput(self, event)
         local child = self.children[i]
         if child:isPointInside(localX, localY) and child.visible == true then
 
-            if event.type == EventType.MOUSE_PRESSED then
-                print("==== mouse pressed:" .. self.tag)
-            end
+            -- if event.type == EventType.MOUSE_PRESSED then
+            --     print("==== mouse pressed:" .. self.tag)
+            -- end
 
 
             local localData = {}
@@ -365,16 +376,18 @@ local function handlePositionalInput(self, event)
             local localEvent = InputEvent(event.type, localData)
             handled = child:handleInput(localEvent)
             if handled then
-                if event.type == EventType.MOUSE_PRESSED then
-                    print("==== mouse pressed:" .. self.tag)
-                end
+                -- if event.type == EventType.MOUSE_PRESSED then
+                --     print("==== mouse pressed:" .. self.tag)
+                -- end
                 if child:isFocusable() and (event.type == EventType.MOUSE_MOVED or event.type == EventType.MOUSE_PRESSED or event.type == EventType.TOUCH_PRESSED) then
                     child:setFocus()
                 end
                 break
             elseif child.highligtable == true then
                 if event.type == EventType.MOUSE_MOVED then
-                    self.context:setHighlight(child)
+                    if child.state ~= GUIContext.State.HOVER and child.state ~= GUIContext.State.PRESSED then
+                        self.context:setHighlight(child)
+                    end
                 end
                 break
             end
@@ -382,7 +395,7 @@ local function handlePositionalInput(self, event)
     end
 
     if not handled then
-        self.context.debug_print_log("==== current handled:" .. self.tag)
+        -- self.context.debug_print_log("==== current handled:" .. self.tag)
         handled = self:onInput(event)
         if handled and self:isFocusable() and (event.type == EventType.MOUSE_PRESSED or event.type == EventType.TOUCH_PRESSED) then
             self:setFocus()
@@ -445,6 +458,9 @@ function GUIElement:getGlobalPosition()
 end
 
 function GUIElement:toLocalCoordinates(x, y)
+    if self.tag == 'Button' then
+        print("button here not correct")
+    end
     local localX, localY = x, y
     local current = self
     while current do
@@ -452,6 +468,7 @@ function GUIElement:toLocalCoordinates(x, y)
         localY = localY - current.y
         current = current.parent
     end
+
     return localX, localY
 end
 

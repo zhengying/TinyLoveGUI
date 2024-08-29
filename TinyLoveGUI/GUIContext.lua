@@ -153,12 +153,13 @@ end
 function GUIContext:setHighlight(element)
     if element ~= nil and element ~=  self.highlightElement then
         self.highlightElement = element
-        if self.highlightElement.onPointerLeave then
-            self.highlightElement:onPointerEnter()
+        if self.highlightElement.onPointerEnter then
+            if self.highlightElement.state ~= GUIContext.State.HOVER or self.highlightElement.state ~= GUIContext.State.PRESSED then
+                self.highlightElement:onPointerEnter()
+            end
         end
         self:emitLocalEvent(self.LocalEvents.HIGHLIGHT_CHANGED,element)
     end
-    self.highlightElement = element
 end
 
 function GUIContext:clearHighlight()
@@ -287,9 +288,12 @@ end
 function GUIContext:handleHighlight(event)
     if InputEventUtils.hasPosition(event) then
         if self.highlightElement then
-            if not self.highlightElement:isPointInside(event.data.x, event.data.y) then
-                self:clearHighlight()
-            end
+            local localX, localY = event.data.x, event.data.y --self.highlightElement:toLocalCoordinates(event.data.x, event.data.y)
+            if not self.highlightElement:isPointInside(localX, localY) then
+                if self.highlightElement.state == GUIContext.State.HOVER or self.highlightElement.state == GUIContext.State.PRESSED then
+                    self:clearHighlight()
+                end
+            end 
         end
     end
 end

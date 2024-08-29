@@ -124,13 +124,13 @@ local function handleRelease(self, x, y, button)
     return true
 end
 
-local function handleHover(self, x, y)
-    self:_stateChanged(GUIContext.State.HOVER)
-    -- if self.tooltips_enabled then
-    --     self:showTooltip()
-    -- end
-    return true
-end
+-- local function handleHover(self, x, y)
+--     self:_stateChanged(GUIContext.State.HOVER)
+--     -- if self.tooltips_enabled then
+--     --     self:showTooltip()
+--     -- end
+--     return true
+-- end
 
 local function handleKeyPress(self, key)
     if key == "return" or key == "space" then
@@ -143,11 +143,13 @@ local function handleKeyPress(self, key)
 end
 
 function Button:onPointerEnter()
+    print('Button:'..self.options.text ..' onPointerEnter')
     self:_stateChanged(GUIContext.State.HOVER)
     return true
 end
 
 function Button:onPointerLeave()
+        print('Button:'..self.options.text ..' onPointerLeave')
     self:_stateChanged(GUIContext.State.NORMAL)
     return true
 end
