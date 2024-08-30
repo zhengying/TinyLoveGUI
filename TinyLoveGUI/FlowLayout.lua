@@ -50,10 +50,9 @@ FlowLayout.SizeMode = {
 ---@param height? number
 ---@param bgcolor table
 ---@param padding? table|number
----@param margin? table|number
 ---@param alignment? FlowLayout.Alignment
 ---@param direction? FlowLayout.Direction
-function FlowLayout:init(x, y, width, height, bgcolor, padding, margin, alignment, direction, sizeMode)
+function FlowLayout:init(x, y, width, height, bgcolor, padding, alignment, direction, sizeMode)
     FlowLayout.super.init(self, x, y, width, height, bgcolor)
     if type(padding) == 'number' then
         padding = {left=padding, right=padding, top=padding, bottom=padding} 
@@ -68,16 +67,6 @@ function FlowLayout:init(x, y, width, height, bgcolor, padding, margin, alignmen
     self.measuredWidth = 0
     self.measuredHeight = 0
     self.gap = gap or 0
-
-    if margin == nil then
-        self.margin = {left=0, right=0, top=0, bottom=0}
-    else
-        if type(margin) == "table" then
-            self.margin = margin
-        else
-            self.margin = {left=margin, right=margin, top=margin, bottom=margin}
-        end
-    end
 
     self.width = width or 0
     self.height = height or 0
@@ -101,13 +90,13 @@ function FlowLayout:updateSize()
     local parentWidth, parentHeight = self.parent:getSize()
     
     if self.sizeMode.width == FlowLayout.SizeMode.FILL_PARENT then
-        self.width = parentWidth - self.margin.left - self.margin.right
+        self.width = parentWidth
     elseif self.sizeMode.width == FlowLayout.SizeMode.WRAP_CONTENT then
         self.width = self.measuredWidth
     end
     
     if self.sizeMode.height == FlowLayout.SizeMode.FILL_PARENT then
-        self.height = parentHeight - self.margin.top - self.margin.bottom
+        self.height = parentHeight
     elseif self.sizeMode.height == FlowLayout.SizeMode.WRAP_CONTENT then
         self.height = self.measuredHeight
     end
@@ -196,6 +185,8 @@ function FlowLayout:updateChildrenPositions()
     end
 
     -- First pass: expand children and calculate total size
+    local maxChildWidth = 0
+    local maxChildHeight = 0
     local totalChildSize = 0
     local remainingSpace = totalSpace
     local spacePerPriority = totalExpandPriority > 0 and remainingSpace / totalExpandPriority or 0
@@ -204,6 +195,9 @@ function FlowLayout:updateChildrenPositions()
         if self.expandingChildren[child] then
             child[mainDim] = spacePerPriority * self.expandingChildren[child]
         end
+        local childWidth, childHeight = child:getSize()
+        maxChildWidth = math.max(maxChildWidth, childWidth)
+        maxChildHeight = math.max(maxChildHeight, childHeight)
         totalChildSize = totalChildSize + child[mainDim]
     end
 
@@ -213,37 +207,44 @@ function FlowLayout:updateChildrenPositions()
         if self.alignment == FlowLayout.Alignment.SPACE_BETWEEN then
             spacing = (totalSpace - totalChildSize) / (childCount - 1)
         elseif self.alignment == FlowLayout.Alignment.SPACE_AROUND then
-            spacing = (totalSpace - totalChildSize) / childCount
+            spacing = (totalSpace - totalChildSize) /  (childCount + 1)
         end
     end
 
     -- Position children
-    local currentPos = (isVertical and self.padding.top or self.padding.left) + (isVertical and self.margin.top or self.margin.left)
+    local currentPos = (isVertical and self.padding.top or self.padding.left)
+
+    if self.alignment == FlowLayout.Alignment.SPACE_AROUND then
+        currentPos = currentPos + spacing
+    end
     
     for i, child in ipairs(self.children) do
-        if self.alignment == FlowLayout.Alignment.SPACE_AROUND then
-            currentPos = currentPos + spacing / 2
-        end
-
         child[mainAxis] = currentPos
 
         -- Apply cross-axis alignment
         if self.alignment == FlowLayout.Alignment.START then
-            child[crossAxis] = (isVertical and self.padding.left or self.padding.top) + (isVertical and self.margin.left or self.margin.top)
+            child[crossAxis] = isVertical and self.padding.left or self.padding.top
         elseif self.alignment == FlowLayout.Alignment.CENTER then
             child[crossAxis] = (self[crossDim] - child[crossDim]) / 2
         elseif self.alignment == FlowLayout.Alignment.END then
-            child[crossAxis] = self[crossDim] - child[crossDim] - (isVertical and self.padding.right or self.padding.bottom) - (isVertical and self.margin.right or self.margin.bottom)
+            child[crossAxis] = self[crossDim] - child[crossDim] - (isVertical and self.padding.right or self.padding.bottom)
         else
-            child[crossAxis] = (isVertical and self.margin.left or self.margin.top) + (isVertical and self.padding.left or self.padding.top)
+            child[crossAxis] = isVertical and self.padding.left or self.padding.top
         end
         
-        currentPos = currentPos + child[mainDim] + (self.alignment == FlowLayout.Alignment.SPACE_AROUND and spacing / 2 or spacing)
+        currentPos = currentPos + child[mainDim] + spacing
     end
 
     -- Update the layout's measured size
-    self.measuredWidth = isVertical and self.width or (currentPos - spacing + self.padding.right + self.margin.right)
-    self.measuredHeight = isVertical and (currentPos - spacing + self.padding.bottom + self.margin.bottom) or self.height
+    if isVertical then
+        --self.measuredWidth = math.max(self.width, maxChildWidth + self.padding.left + self.padding.right)
+        self.measuredWidth = maxChildWidth + self.padding.left + self.padding.right
+        self.measuredHeight = currentPos - spacing + self.padding.bottom
+    else
+        self.measuredWidth = currentPos - spacing + self.padding.right
+        --self.measuredHeight = math.max(self.height, maxChildHeight + self.padding.top + self.padding.bottom)
+        self.measuredHeight = maxChildHeight + self.padding.top + self.padding.bottom
+    end
     
     if self.sizeMode.width == FlowLayout.SizeMode.WRAP_CONTENT then
         self.width = self.measuredWidth

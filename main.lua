@@ -307,7 +307,7 @@ local function runTests()
         -- Test 1: Basic horizontal layout
         function()
             local context = GUIContext(0, 0, 800, 600)
-            local layout = FlowLayout(0, 0, 300, 100, {1,1,1}, {left=5, right=5, top=5, bottom=5}, {left=0, right=0, top=0, bottom=0}, FlowLayout.Alignment.START, FlowLayout.Direction.HORIZONTAL)
+            local layout = FlowLayout(0, 0, 300, 100, {1,1,1}, {left=5, right=5, top=5, bottom=5}, FlowLayout.Alignment.START, FlowLayout.Direction.HORIZONTAL)
             context:addChild(layout)
             
             layout:addChild(MockElement(50, 50))
@@ -325,7 +325,7 @@ local function runTests()
         -- Test 2: Vertical layout with expanding children
         function()
             local context = GUIContext(0, 0, 800, 600)
-            local layout = FlowLayout(0, 0, 100, 300, {1,1,1}, {left=10, right=10, top=10, bottom=10}, {left=0, right=0, top=0, bottom=0}, FlowLayout.Alignment.START, FlowLayout.Direction.VERTICAL)
+            local layout = FlowLayout(0, 0, 100, 300, {1,1,1}, {left=10, right=10, top=10, bottom=10}, FlowLayout.Alignment.START, FlowLayout.Direction.VERTICAL)
             context:addChild(layout)
             
             layout:addChild(MockElement(50, 50), 1)
@@ -343,7 +343,7 @@ local function runTests()
         -- Test 3: FILL_PARENT width mode
         function()
             local context = GUIContext(0, 0, 800, 600)
-            local layout = FlowLayout(0, 0, 300, 100, {1,1,1}, {left=10, right=10, top=10, bottom=10}, {left=5, right=5, top=0, bottom=0}, FlowLayout.Alignment.START, FlowLayout.Direction.HORIZONTAL)
+            local layout = FlowLayout(0, 0, 300, 100, {1,1,1}, {left=10, right=10, top=10, bottom=10}, FlowLayout.Alignment.START, FlowLayout.Direction.HORIZONTAL)
             context:addChild(layout)
             layout:setSizeMode(FlowLayout.SizeMode.FILL_PARENT, FlowLayout.SizeMode.FIXED)
             
@@ -351,15 +351,15 @@ local function runTests()
             layout:addChild(MockElement(50, 50))
             --layout:updateFrame()
             
-            assert(layout:getWidth() == 790, "Layout width should fill parent (800 - 5 - 5)")
+            assert(layout:getWidth() == 800, "Layout width should fill parent (800)")
             assert(layout:getHeight() == 100, "Layout height should remain fixed")
-            assert(layout.children[1].x == 15, "First child should start at x=15 (left margin + left padding)")
+            assert(layout.children[1].x == 10, "First child should start at x=10 (left padding)")
         end,
 
         -- Test 4: WRAP_CONTENT height mode
         function()
             local context = GUIContext(0, 0, 800, 600)
-            local layout = FlowLayout(0, 0, 100, 100, {1,1,1}, {left=10, right=10, top=10, bottom=10}, {left=0, right=0, top=5, bottom=5}, FlowLayout.Alignment.START, FlowLayout.Direction.VERTICAL)
+            local layout = FlowLayout(0, 0, 100, 100, {1,1,1}, {left=10, right=10, top=10, bottom=10}, FlowLayout.Alignment.START, FlowLayout.Direction.VERTICAL)
             context:addChild(layout)
             layout:setSizeMode(FlowLayout.SizeMode.FIXED, FlowLayout.SizeMode.WRAP_CONTENT)
             
@@ -368,14 +368,14 @@ local function runTests()
             --layout:updateFrame()
             
             assert(layout:getWidth() == 100, "Layout width should remain fixed")
-            assert(layout:getHeight() == 150, "Layout height should wrap content (5 + 10 + 50 + 10 + 70 + 10 + 5)")
-            assert(layout.children[1].y == 15, "First child should start at y=15 (top margin + top padding)")
+            assert(layout:getHeight() == 140, "Layout height should wrap content (10 + 50 + 10 + 70 + 10)")
+            assert(layout.children[1].y == 10, "First child should start at y=10 (top padding)")
         end,
 
         -- Test 5: Resizing parent
         function()
             local context = GUIContext(0, 0, 800, 600)
-            local layout = FlowLayout(0, 0, 300, 100, {1,1,1}, {left=10, right=10, top=10, bottom=10}, {left=5, right=5, top=5, bottom=5}, FlowLayout.Alignment.START, FlowLayout.Direction.HORIZONTAL)
+            local layout = FlowLayout(0, 0, 300, 100, {1,1,1}, {left=10, right=10, top=10, bottom=10}, FlowLayout.Alignment.START, FlowLayout.Direction.HORIZONTAL)
             context:addChild(layout)
             layout:setSizeMode(FlowLayout.SizeMode.FILL_PARENT, FlowLayout.SizeMode.WRAP_CONTENT)
             
@@ -385,15 +385,15 @@ local function runTests()
             
             context:resize(1000, 800)
             
-            assert(layout:getWidth() == 990, "Layout width should fill new parent width (1000 - 5 - 5)")
-            assert(layout:getHeight() == 100, "Layout height should wrap content (5 + 10 + 70 + 10 + 5)")
-            assert(layout.children[1].x == 15, "First child should start at x=15 (left margin + left padding)")
+            assert(layout:getWidth() == 1000, "Layout width should fill new parent width (1000)")
+            assert(layout:getHeight() == 90, "Layout height should wrap content (10 + 70 + 10)")
+            assert(layout.children[1].x == 10, "First child should start at x=10 (left padding)")
         end,
 
         -- Test 6: Adding and removing children with WRAP_CONTENT
         function()
             local context = GUIContext(0, 0, 800, 600)
-            local layout = FlowLayout(0, 0, 100, 100, {1,1,1}, {left=10, right=10, top=10, bottom=10}, {left=0, right=0, top=5, bottom=5}, FlowLayout.Alignment.START, FlowLayout.Direction.VERTICAL)
+            local layout = FlowLayout(0, 0, 100, 100, {1,1,1}, {left=10, right=10, top=10, bottom=10}, FlowLayout.Alignment.START, FlowLayout.Direction.VERTICAL)
             context:addChild(layout)
             layout:setSizeMode(FlowLayout.SizeMode.FIXED, FlowLayout.SizeMode.WRAP_CONTENT)
             
@@ -403,28 +403,25 @@ local function runTests()
             layout:addChild(child1)
             --layout:updateFrame()
             local height1 = layout:getHeight()
-            print("Height with one child:", height1)
-            assert(height1 == 80, string.format("Layout height should wrap one child (5 + 10 + 50 + 10 + 5), but got %d", height1))
+            assert(height1 == 70, string.format("Layout height should wrap one child (5 + 10 + 50 + 10 + 5), but got %d", height1))
             
             layout:addChild(child2)
             --layout:updateFrame()
             local height2 = layout:getHeight()
-            print("Height with two children:", height2)
-            assert(height2 == 150, string.format("Layout height should wrap both children (5 + 10 + 50 + 70 + 10 + 5), but got %d", height2))
+            assert(height2 == 140, string.format("Layout height should wrap both children (10 + 50 + 70 + 10), but got %d", height2))
             
-            assert(child1.y == 15, string.format("First child should start at y=15 (top margin + top padding), but got %d", child1.y))
-            assert(child2.y == 65, string.format("Second child should start at y=65 (top margin + top padding + first child height), but got %d", child2.y))
+            assert(child1.y == 10, string.format("First child should start at y=15 (top padding), but got %d", child1.y))
+            assert(child2.y == 60, string.format("Second child should start at y=65 (top padding + first child height), but got %d", child2.y))
             
             layout:removeChild(child2)
             --layout:updateFrame()
             local height3 = layout:getHeight()
-            print("Height after removing second child:", height3)
-            assert(height3 == 80, string.format("Layout height should wrap only remaining child (5 + 10 + 50 + 10 + 5), but got %d", height3))
+            assert(height3 == 70, string.format("Layout height should wrap only remaining child (10 + 50 + 10), but got %d", height3))
         end,
     -- Test 7: Horizontal layout with different alignments
     function()
         local context = GUIContext(0, 0, 800, 600)
-        local layout = FlowLayout(0, 0, 300, 100, {1,1,1}, 10, 0, FlowLayout.Alignment.START, FlowLayout.Direction.HORIZONTAL)
+        local layout = FlowLayout(0, 0, 300, 100, {1,1,1}, 10, FlowLayout.Alignment.START, FlowLayout.Direction.HORIZONTAL)
         context:addChild(layout)
         
         local child1 = MockElement(50, 30)
@@ -459,7 +456,7 @@ local function runTests()
     -- Test 8: Vertical layout with different alignments
     function()
         local context = GUIContext(0, 0, 800, 600)
-        local layout = FlowLayout(0, 0, 100, 300, {1,1,1}, 10, 0, FlowLayout.Alignment.START, FlowLayout.Direction.VERTICAL)
+        local layout = FlowLayout(0, 0, 100, 300, {1,1,1}, 10, FlowLayout.Alignment.START, FlowLayout.Direction.VERTICAL)
         context:addChild(layout)
         
         local child1 = MockElement(30, 50)
@@ -495,7 +492,7 @@ local function runTests()
     function()
         -- Test 9: SPACE_BETWEEN alignment
         local context = GUIContext(0, 0, 800, 600)
-        local layout9 = FlowLayout(10, 10, 300, 100, {0.5, 0.5, 0.5}, nil, nil, FlowLayout.Alignment.SPACE_BETWEEN)
+        local layout9 = FlowLayout(10, 10, 300, 100, {0.5, 0.5, 0.5}, nil, FlowLayout.Alignment.SPACE_BETWEEN)
         context:addChild(layout9)
         layout9:addChild(GUIElement(0, 0, 50, 50, {1, 0, 0}))
         layout9:addChild(GUIElement(0, 0, 50, 50, {0, 1, 0}))
@@ -507,13 +504,12 @@ local function runTests()
         assert(child1.x == 5, "Child1 should be at the start with SPACE_BETWEEN alignment")
         assert(child2.x == 125, "Child2 should be in the middle with SPACE_BETWEEN alignment")
         assert(child3.x == 245, "Child3 should be at the end with SPACE_BETWEEN alignment")
-        print("Test 9 passed")
     end,
 
     -- Test 10: SPACE_AROUND alignment
     function()
         local context = GUIContext(0, 0, 800, 600)
-        local layout = FlowLayout(0, 0, 300, 100, {1,1,1}, 10, 0, FlowLayout.Alignment.SPACE_AROUND, FlowLayout.Direction.HORIZONTAL)
+        local layout = FlowLayout(0, 0, 300, 100, {1,1,1}, 10, FlowLayout.Alignment.SPACE_AROUND, FlowLayout.Direction.HORIZONTAL)
         context:addChild(layout)
         
         local child1 = MockElement(50, 50)
@@ -524,10 +520,51 @@ local function runTests()
         layout:addChild(child3)
         
         layout:updateFrame()
-        assert(child1.x == 35, "Child1 should have equal space around with SPACE_AROUND alignment")
+        assert(child1.x == 42.5, "Child1 should have equal space around with SPACE_AROUND alignment")
         assert(child2.x == 125, "Child2 should have equal space around with SPACE_AROUND alignment")
-        assert(child3.x == 215, "Child3 should have equal space around with SPACE_AROUND alignment")
+        assert(child3.x == 207.5, "Child3 should have equal space around with SPACE_AROUND alignment")
     end,
+    -- Test 11: Gap property in horizontal layout
+function()
+    local context = GUIContext(0, 0, 800, 600)
+    local layout = FlowLayout(0, 0, 300, 100, {1,1,1}, 10, FlowLayout.Alignment.START, FlowLayout.Direction.HORIZONTAL)
+    layout.gap = 20  -- Set gap to 20 pixels
+    context:addChild(layout)
+    
+    local child1 = MockElement(50, 50)
+    local child2 = MockElement(50, 50)
+    local child3 = MockElement(50, 50)
+    layout:addChild(child1)
+    layout:addChild(child2)
+    layout:addChild(child3)
+    
+    layout:updateFrame()
+    assert(child1.x == 10, "Child1 should start at x=10 (left padding)")
+    assert(child2.x == 80, "Child2 should be at x=80 (10 + 50 + 20)")
+    assert(child3.x == 150, "Child3 should be at x=150 (10 + 50 + 20 + 50 + 20)")
+    assert(layout:getWidth() == 210, "Layout width should be 210 (10 + 50 + 20 + 50 + 20 + 50 + 10)")
+end,
+
+-- Test 12: Gap property in vertical layout
+function()
+    local context = GUIContext(0, 0, 800, 600)
+    local layout = FlowLayout(0, 0, 100, 300, {1,1,1}, 10, FlowLayout.Alignment.START, FlowLayout.Direction.VERTICAL)
+    layout.gap = 15  -- Set gap to 15 pixels
+    context:addChild(layout)
+    
+    local child1 = MockElement(50, 40)
+    local child2 = MockElement(50, 40)
+    local child3 = MockElement(50, 40)
+    layout:addChild(child1)
+    layout:addChild(child2)
+    layout:addChild(child3)
+    
+    layout:updateFrame()
+    assert(child1.y == 10, "Child1 should start at y=10 (top padding)")
+    assert(child2.y == 65, "Child2 should be at y=65 (10 + 40 + 15)")
+    assert(child3.y == 120, "Child3 should be at y=120 (10 + 40 + 15 + 40 + 15)")
+    assert(layout:getHeight() == 170, "Layout height should be 170 (10 + 40 + 15 + 40 + 15 + 40 + 10)")
+end,
         
     }
 
