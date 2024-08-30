@@ -189,30 +189,40 @@ function FlowLayout:updateChildrenPositions()
 
     local totalSpace = self[mainDim] - self.padding[isVertical and "top" or "left"] - self.padding[isVertical and "bottom" or "right"]
     local childCount = #self.children
-    local totalChildSize = 0
 
-    -- Calculate total child size and expand children if necessary
+    local totalExpandPriority = 0
+    for _, priority in pairs(self.expandingChildren) do
+        totalExpandPriority = totalExpandPriority + priority
+    end
+
+    -- First pass: expand children and calculate total size
+    local totalChildSize = 0
+    local remainingSpace = totalSpace
+    local spacePerPriority = totalExpandPriority > 0 and remainingSpace / totalExpandPriority or 0
+
     for _, child in ipairs(self.children) do
         if self.expandingChildren[child] then
-            -- Implement expansion logic here if needed
+            child[mainDim] = spacePerPriority * self.expandingChildren[child]
         end
         totalChildSize = totalChildSize + child[mainDim]
     end
 
+    -- Calculate spacing
     local spacing = 0
     if childCount > 1 then
         if self.alignment == FlowLayout.Alignment.SPACE_BETWEEN then
             spacing = (totalSpace - totalChildSize) / (childCount - 1)
         elseif self.alignment == FlowLayout.Alignment.SPACE_AROUND then
-            spacing = (totalSpace - totalChildSize) / (childCount + 1)
+            spacing = (totalSpace - totalChildSize) / childCount
         end
     end
 
+    -- Position children
     local currentPos = (isVertical and self.padding.top or self.padding.left) + (isVertical and self.margin.top or self.margin.left)
-
+    
     for i, child in ipairs(self.children) do
         if self.alignment == FlowLayout.Alignment.SPACE_AROUND then
-            currentPos = currentPos + spacing
+            currentPos = currentPos + spacing / 2
         end
 
         child[mainAxis] = currentPos
@@ -225,10 +235,10 @@ function FlowLayout:updateChildrenPositions()
         elseif self.alignment == FlowLayout.Alignment.END then
             child[crossAxis] = self[crossDim] - child[crossDim] - (isVertical and self.padding.right or self.padding.bottom) - (isVertical and self.margin.right or self.margin.bottom)
         else
-            child[crossAxis] = (isVertical and self.padding.left or self.padding.top) + (isVertical and self.margin.left or self.margin.top)
+            child[crossAxis] = (isVertical and self.margin.left or self.margin.top) + (isVertical and self.padding.left or self.padding.top)
         end
         
-        currentPos = currentPos + child[mainDim] + spacing
+        currentPos = currentPos + child[mainDim] + (self.alignment == FlowLayout.Alignment.SPACE_AROUND and spacing / 2 or spacing)
     end
 
     -- Update the layout's measured size
