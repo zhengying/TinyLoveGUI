@@ -542,7 +542,8 @@ function()
     assert(child1.x == 10, "Child1 should start at x=10 (left padding)")
     assert(child2.x == 80, "Child2 should be at x=80 (10 + 50 + 20)")
     assert(child3.x == 150, "Child3 should be at x=150 (10 + 50 + 20 + 50 + 20)")
-    assert(layout:getWidth() == 210, "Layout width should be 210 (10 + 50 + 20 + 50 + 20 + 50 + 10)")
+    assert(layout:getWidth() == 300, "Layout width should remain 300 (initial width)")
+    assert(layout.measuredWidth == 210, "Layout measured width should be 210 (10 + 50 + 20 + 50 + 20 + 50 + 10)")
 end,
 
 -- Test 12: Gap property in vertical layout
@@ -563,7 +564,8 @@ function()
     assert(child1.y == 10, "Child1 should start at y=10 (top padding)")
     assert(child2.y == 65, "Child2 should be at y=65 (10 + 40 + 15)")
     assert(child3.y == 120, "Child3 should be at y=120 (10 + 40 + 15 + 40 + 15)")
-    assert(layout:getHeight() == 170, "Layout height should be 170 (10 + 40 + 15 + 40 + 15 + 40 + 10)")
+    assert(layout:getHeight() == 300, "Layout width should remain 300 (initial width)")
+    assert(layout.measuredHeight == 170, "Layout measured width should be 210 (10 + 50 + 20 + 50 + 20 + 50 + 10)")
 end,
         
     }

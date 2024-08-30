@@ -202,7 +202,8 @@ function FlowLayout:updateChildrenPositions()
     end
 
     -- Calculate spacing
-    local spacing = 0
+    local gap = self.gap or 0
+    local spacing = gap
     if childCount > 1 then
         if self.alignment == FlowLayout.Alignment.SPACE_BETWEEN then
             spacing = (totalSpace - totalChildSize) / (childCount - 1)
@@ -216,6 +217,10 @@ function FlowLayout:updateChildrenPositions()
 
     if self.alignment == FlowLayout.Alignment.SPACE_AROUND then
         currentPos = currentPos + spacing
+    elseif self.alignment == FlowLayout.Alignment.CENTER then
+        currentPos = currentPos + (totalSpace - totalChildSize - (childCount - 1) * spacing) / 2
+    elseif self.alignment == FlowLayout.Alignment.END then
+        currentPos = currentPos + (totalSpace - totalChildSize - (childCount - 1) * spacing)
     end
     
     for i, child in ipairs(self.children) do
@@ -237,12 +242,10 @@ function FlowLayout:updateChildrenPositions()
 
     -- Update the layout's measured size
     if isVertical then
-        --self.measuredWidth = math.max(self.width, maxChildWidth + self.padding.left + self.padding.right)
         self.measuredWidth = maxChildWidth + self.padding.left + self.padding.right
         self.measuredHeight = currentPos - spacing + self.padding.bottom
     else
         self.measuredWidth = currentPos - spacing + self.padding.right
-        --self.measuredHeight = math.max(self.height, maxChildHeight + self.padding.top + self.padding.bottom)
         self.measuredHeight = maxChildHeight + self.padding.top + self.padding.bottom
     end
     
