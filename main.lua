@@ -421,6 +421,114 @@ local function runTests()
             print("Height after removing second child:", height3)
             assert(height3 == 80, string.format("Layout height should wrap only remaining child (5 + 10 + 50 + 10 + 5), but got %d", height3))
         end,
+    -- Test 7: Horizontal layout with different alignments
+    function()
+        local context = GUIContext(0, 0, 800, 600)
+        local layout = FlowLayout(0, 0, 300, 100, {1,1,1}, 10, 0, FlowLayout.Alignment.START, FlowLayout.Direction.HORIZONTAL)
+        context:addChild(layout)
+        
+        local child1 = MockElement(50, 30)
+        local child2 = MockElement(50, 50)
+        local child3 = MockElement(50, 40)
+        layout:addChild(child1)
+        layout:addChild(child2)
+        layout:addChild(child3)
+        
+        -- Test START alignment
+        layout:setAlignment(FlowLayout.Alignment.START)
+        layout:updateFrame()
+        assert(child1.y == 10, "Child1 should be at the top with START alignment")
+        assert(child2.y == 10, "Child2 should be at the top with START alignment")
+        assert(child3.y == 10, "Child3 should be at the top with START alignment")
+        
+        -- Test CENTER alignment
+        layout:setAlignment(FlowLayout.Alignment.CENTER)
+        layout:updateFrame()
+        assert(child1.y == 35, "Child1 should be centered with CENTER alignment")
+        assert(child2.y == 25, "Child2 should be centered with CENTER alignment")
+        assert(child3.y == 30, "Child3 should be centered with CENTER alignment")
+        
+        -- Test END alignment
+        layout:setAlignment(FlowLayout.Alignment.END)
+        layout:updateFrame()
+        assert(child1.y == 60, "Child1 should be at the bottom with END alignment")
+        assert(child2.y == 40, "Child2 should be at the bottom with END alignment")
+        assert(child3.y == 50, "Child3 should be at the bottom with END alignment")
+    end,
+
+    -- Test 8: Vertical layout with different alignments
+    function()
+        local context = GUIContext(0, 0, 800, 600)
+        local layout = FlowLayout(0, 0, 100, 300, {1,1,1}, 10, 0, FlowLayout.Alignment.START, FlowLayout.Direction.VERTICAL)
+        context:addChild(layout)
+        
+        local child1 = MockElement(30, 50)
+        local child2 = MockElement(50, 50)
+        local child3 = MockElement(40, 50)
+        layout:addChild(child1)
+        layout:addChild(child2)
+        layout:addChild(child3)
+        
+        -- Test START alignment
+        layout:setAlignment(FlowLayout.Alignment.START)
+        layout:updateFrame()
+        assert(child1.x == 10, "Child1 should be at the left with START alignment")
+        assert(child2.x == 10, "Child2 should be at the left with START alignment")
+        assert(child3.x == 10, "Child3 should be at the left with START alignment")
+        
+        -- Test CENTER alignment
+        layout:setAlignment(FlowLayout.Alignment.CENTER)
+        layout:updateFrame()
+        assert(child1.x == 35, "Child1 should be centered with CENTER alignment")
+        assert(child2.x == 25, "Child2 should be centered with CENTER alignment")
+        assert(child3.x == 30, "Child3 should be centered with CENTER alignment")
+        
+        -- Test END alignment
+        layout:setAlignment(FlowLayout.Alignment.END)
+        layout:updateFrame()
+        assert(child1.x == 60, "Child1 should be at the right with END alignment")
+        assert(child2.x == 40, "Child2 should be at the right with END alignment")
+        assert(child3.x == 50, "Child3 should be at the right with END alignment")
+    end,
+
+    -- Test 9: SPACE_BETWEEN alignment
+    function()
+        -- Test 9: SPACE_BETWEEN alignment
+        local context = GUIContext(0, 0, 800, 600)
+        local layout9 = FlowLayout(10, 10, 300, 100, {0.5, 0.5, 0.5}, nil, nil, FlowLayout.Alignment.SPACE_BETWEEN)
+        context:addChild(layout9)
+        layout9:addChild(GUIElement(0, 0, 50, 50, {1, 0, 0}))
+        layout9:addChild(GUIElement(0, 0, 50, 50, {0, 1, 0}))
+        layout9:addChild(GUIElement(0, 0, 50, 50, {0, 0, 1}))
+        --layout9:updateChildrenPositions()
+        local child1 = layout9.children[1]
+        local child2 = layout9.children[2]
+        local child3 = layout9.children[3]
+        assert(child1.x == 5, "Child1 should be at the start with SPACE_BETWEEN alignment")
+        assert(child2.x == 125, "Child2 should be in the middle with SPACE_BETWEEN alignment")
+        assert(child3.x == 245, "Child3 should be at the end with SPACE_BETWEEN alignment")
+        print("Test 9 passed")
+    end,
+
+    -- Test 10: SPACE_AROUND alignment
+    function()
+        local context = GUIContext(0, 0, 800, 600)
+        local layout = FlowLayout(0, 0, 300, 100, {1,1,1}, 10, 0, FlowLayout.Alignment.SPACE_AROUND, FlowLayout.Direction.HORIZONTAL)
+        context:addChild(layout)
+        
+        local child1 = MockElement(50, 50)
+        local child2 = MockElement(50, 50)
+        local child3 = MockElement(50, 50)
+        layout:addChild(child1)
+        layout:addChild(child2)
+        layout:addChild(child3)
+        
+        layout:updateFrame()
+        assert(child1.x == 35, "Child1 should have equal space around with SPACE_AROUND alignment")
+        assert(child2.x == 125, "Child2 should have equal space around with SPACE_AROUND alignment")
+        assert(child3.x == 215, "Child3 should have equal space around with SPACE_AROUND alignment")
+    end,
+        
     }
 
     for i, test in ipairs(tests) do
