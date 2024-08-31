@@ -74,11 +74,14 @@ function GUIElement:init(x, y, width, height, bgcolor)
     -- end
     self.children = {}
     self.parent = nil
+    if bgcolor ~= nil and bgcolor.r == nil then
+        bgcolor = {r=bgcolor[1],g=bgcolor[2],b=bgcolor[3]}
+    end
     self.bgcolor = bgcolor or {r=0.5,g=0.5,b=0.5}
     self.state = GUIContext.State.NORMAL
     self.tag = "GUIElement"
     self.zIndex = GUIContext.ZIndexGroup.NORMAL
-    self.DEBUG_DRAW = true
+    self.DEBUG_DRAW = false
     self.context = nil
     -- focus
     self.focusable = true
@@ -266,9 +269,7 @@ function GUIElement:removeChild(child)
 end
 
 function GUIElement:draw()
-    if self.tag == 'FlowLayout' and self.children[1].tag == 'Button' then
-        print("button here!")
-    end
+
     if not self.visible then return end  -- Skip drawing if not visible
 
     love.graphics.push()
@@ -458,9 +459,7 @@ function GUIElement:getGlobalPosition()
 end
 
 function GUIElement:toLocalCoordinates(x, y)
-    if self.tag == 'Button' then
-        print("button here not correct")
-    end
+
     local localX, localY = x, y
     local current = self
     while current do

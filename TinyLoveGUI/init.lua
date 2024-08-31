@@ -38,6 +38,7 @@ local PopupMenu = require(cwd .. "PopupMenu")
 local ModalWindow  = require(cwd .. "ModalWindow")
 local GUIContext = require(cwd .. "GUIContext")
 local PopupWindow = require(cwd .. "PopupWindow")
+local TextEditor = require(cwd .. "TextEditor")
 
 
 return {
@@ -56,4 +57,5 @@ return {
     GUIContext = GUIContext,
     PopupWindow = PopupWindow,
     InputEventUtils = InputEventUtils,
+    TextEditor = TextEditor,
 }

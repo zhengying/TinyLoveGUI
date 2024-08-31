@@ -77,16 +77,18 @@ function FlowLayout:init(x, y, width, height, bgcolor, padding, alignment, direc
 end
 
 function FlowLayout:onAddToContext(context)
-    self:updateSize()
+    self:updateFrame()
 end
 
 function FlowLayout:setSizeMode(widthMode, heightMode)
     self.sizeMode.width = widthMode or self.sizeMode.width
     self.sizeMode.height = heightMode or self.sizeMode.height
-    self:updateSize()
+    self:updateFrame()
 end
 
-function FlowLayout:updateSize()
+function FlowLayout:updateFrame()
+    if self.parent == nil then return end
+
     local parentWidth, parentHeight = self.parent:getSize()
     
     if self.sizeMode.width == FlowLayout.SizeMode.FILL_PARENT then
@@ -100,13 +102,20 @@ function FlowLayout:updateSize()
     elseif self.sizeMode.height == FlowLayout.SizeMode.WRAP_CONTENT then
         self.height = self.measuredHeight
     end
+
+    for _, child in ipairs(self.children) do
+        child:onParentResize(self.width, self.height)
+    end
     
     self:updateChildrenPositions()
 end
 
 function FlowLayout:onParentResize(parentWidth, parentHeight)
     if self.sizeMode.width == FlowLayout.SizeMode.FILL_PARENT or self.sizeMode.height == FlowLayout.SizeMode.FILL_PARENT then
-        self:updateSize()
+        self:updateFrame()
+        for _, child in ipairs(self.children) do
+            child:onParentResize(self.width, self.height)
+        end
     end
 end
 
@@ -117,7 +126,8 @@ function FlowLayout:resize(width, height)
     if self.sizeMode.height == FlowLayout.SizeMode.FIXED then
         self.height = height
     end
-    self:updateSize()
+    self:updateFrame()
+
 end
 
 function FlowLayout:getWidth()
@@ -166,10 +176,6 @@ function FlowLayout:setDirection(direction)
     self:updateFrame()
 end
 
-function FlowLayout:updateFrame()
-    self:updateChildrenPositions()
-    self:updateSize()
-end
 
 function FlowLayout:updateChildrenPositions()
     local isVertical = self.direction == FlowLayout.Direction.VERTICAL
