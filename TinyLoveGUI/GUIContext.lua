@@ -152,27 +152,32 @@ end
 
 function GUIContext:setHighlight(element)
     if element ~= nil and element ~=  self.highlightElement then
+        if self.highlightElement and self.highlightElement.onPointerLeave then
+            self.highlightElement:onPointerLeave()
+        end
+
         self.highlightElement = element
+
         if self.highlightElement.onPointerEnter then
-            if self.highlightElement.state ~= GUIContext.State.HOVER or self.highlightElement.state ~= GUIContext.State.PRESSED then
-                self.highlightElement:onPointerEnter()
-            end
+            self.highlightElement:onPointerEnter()
         end
         self:emitLocalEvent(self.LocalEvents.HIGHLIGHT_CHANGED,element)
+    else
+        print('setHighlight error: ' .. tostring(element) .. ' is nil')
     end
 end
 
-function GUIContext:clearHighlight()
-    if self.highlightElement == nil then return end
+-- function GUIContext:clearHighlight()
+--     if self.highlightElement == nil then return end
 
-    if self.highlightElement.onPointerLeave then
-        self.highlightElement:onPointerLeave()
-    end
+--     if self.highlightElement.onPointerLeave then
+--         self.highlightElement:onPointerLeave()
+--     end
 
-    self:emitLocalEvent(self.LocalEvents.HIGHLIGHT_CHANGED,nil)
+--     self:emitLocalEvent(self.LocalEvents.HIGHLIGHT_CHANGED,nil)
 
-    self.highlightElement = nil
-end
+--     self.highlightElement = nil
+-- end
 
 function GUIContext:setRoot(rootElement)
     self.root = rootElement
@@ -285,21 +290,30 @@ function GUIContext:checkKeyPress(keycode)
     end
 end
 
-function GUIContext:handleHighlight(event)
+function GUIContext:handleHighlightClear(event)
     if InputEventUtils.hasPosition(event) then
         if self.highlightElement then
             local localX, localY = event.data.x, event.data.y --self.highlightElement:toLocalCoordinates(event.data.x, event.data.y)
             if not self.highlightElement:isPointInside(localX, localY) then
+                print('highlightElement: ' .. self.highlightElement.tag  .. 'state:' ..self.highlightElement.state .. ' is not point inside')
                 if self.highlightElement.state == GUIContext.State.HOVER or self.highlightElement.state == GUIContext.State.PRESSED then
-                    self:clearHighlight()
+                    if self.highlightElement.onPointerLeave then
+                        self.highlightElement:onPointerLeave()
+                    end
+                    self.highlightElement = nil
+                    self:emitLocalEvent(self.LocalEvents.HIGHLIGHT_CHANGED,nil)
+                else
+                    print('highlightElement not hover: ' .. self.highlightElement.tag  .. 'state:' ..self.highlightElement.state)
                 end
             end 
+        else
+            print('highlightElement is nil')
         end
     end
 end
 
 function GUIContext:handleInput(event)
-    self:handleHighlight(event)
+    self:handleHighlightClear(event)
     if self:hasModalWindow() then
         local modalWindow = self:getTopModal()
         local blhandled = modalWindow:handleInput(event)

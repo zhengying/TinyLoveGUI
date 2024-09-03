@@ -34,7 +34,7 @@ function PopupMessage:init(x, y, width, height, message, duration)
     self.timeLeft = self.duration
     self.backgroundColor = {r=0.2, g=0.2, b=0.2, a=0.8}
     self.textColor = {r=1, g=1, b=1, a=1}
-    self.padding = 10
+    self.padding = 0
     self.fontSize = 16
     self.font = love.graphics.newFont(self.fontSize)
     self.tag = "PopupMessage"

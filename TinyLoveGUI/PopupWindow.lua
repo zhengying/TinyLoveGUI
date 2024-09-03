@@ -13,9 +13,9 @@ function PopupWindow:init(x, y, width, height, text, targetX, targetY, targetWid
     self.font = love.graphics.newFont(12)
     self.padding = {left=5, right=5, top=5, bottom=5}
 
-    -- Create a text object with wrapping
-    self.textObject = love.graphics.newText(self.font, text)
-    self.textObject:setf(text, maxWidth - 2 * self.padding.left, "left")
+    -- Create a text object with center alignment
+    self.textObject = love.graphics.newText(self.font)
+    self.textObject:setf(text, maxWidth - 2 * self.padding.left, "center")
     -- Get the actual dimensions of the wrapped text
     local textWidth, textHeight = self.textObject:getDimensions()
     
@@ -64,14 +64,13 @@ function PopupWindow:draw()
     love.graphics.setColor(unpack(self.backgroundColor))
     love.graphics.rectangle("fill", 0, 0, self.width, self.height, self.cornerRadius, self.cornerRadius)
     
-    -- Draw border, skipping the part where the arrow connects
-    -- self:drawBorder()
-    
     -- Draw text
     love.graphics.setColor(unpack(self.textColor))
     love.graphics.setFont(self.font)
-    --love.graphics.printf(self.text, self.padding, self.padding, self.width - 2 * self.padding, "left")
-    love.graphics.draw(self.textObject, self.padding.left, self.padding.top)
+    
+    -- Draw the text centered
+    love.graphics.printf(self._text, self.padding.left, (self.height - self.font:getHeight()) / 2, 
+                         self.width - self.padding.left - self.padding.right, "center")
     
     love.graphics.pop()
 end

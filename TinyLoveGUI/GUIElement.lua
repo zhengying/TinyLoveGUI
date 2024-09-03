@@ -385,18 +385,13 @@ local function handlePositionalInput(self, event)
             local localEvent = InputEvent(event.type, localData)
             handled = child:handleInput(localEvent)
             if handled then
-                -- if event.type == EventType.MOUSE_PRESSED then
-                --     print("==== mouse pressed:" .. self.tag)
-                -- end
                 if child:isFocusable() and (event.type == EventType.MOUSE_MOVED or event.type == EventType.MOUSE_PRESSED or event.type == EventType.TOUCH_PRESSED) then
                     child:setFocus()
                 end
                 break
             elseif child.highligtable == true then
                 if event.type == EventType.MOUSE_MOVED then
-                    if child.state ~= GUIContext.State.HOVER and child.state ~= GUIContext.State.PRESSED then
-                        self.context:setHighlight(child)
-                    end
+                    self.context:setHighlight(child)
                 end
                 break
             end

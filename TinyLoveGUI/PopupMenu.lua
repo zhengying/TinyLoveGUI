@@ -86,7 +86,6 @@ function PopupMenu:show(x, y)
     self.y = y
     self.visible = true
     self.popupStack = {}
-    print('PopupMenu shown at (' .. self.x .. ',' .. self.y .. ')')
 end
 
 function PopupMenu:hide()
@@ -168,7 +167,6 @@ local function handlePress(self, x, y)
     local node, menuIndex = self:getNodeAt(x, y)
 
     if node then
-        print('node:' .. tostring(node.tag) .. " menuIndex:" .. tostring(menuIndex))
         --self.selectedNode = node
         if not node:isGroup() then
             -- Leaf node selected, close menu and call callback if exists
@@ -186,15 +184,8 @@ local function handlePress(self, x, y)
 end
 
 local function handleMove(self, x, y)
-    print('PopupMenu handleMove: (' .. x .. ',' .. y .. ')')
     
     local newHoveredNode, menuIndex = self:getNodeAt(x, y)
-    
-    if newHoveredNode then
-        print('Hovered node: ' .. tostring(newHoveredNode.title) .. " at menu index: " .. tostring(menuIndex))
-    else
-        print('No node hovered')
-    end
     
     if newHoveredNode ~= self.hoveredNode then
         self.hoveredNode = newHoveredNode

@@ -251,7 +251,7 @@ function TextEditor:onInput(event)
 
     if event.type == EventType.KEY_PRESSED or event.type == EventType.KEY_REPEATED then
         local shift = love.keyboard.isDown("lshift") or love.keyboard.isDown("rshift")
-        
+
         if event.data.key == "left" then
             if shift and not self:hasSelection() then
                 self:startSelection()
@@ -318,6 +318,7 @@ function TextEditor:onInput(event)
         self:insertCharacter(event.data.text)
         return true
     elseif event.type == EventType.MOUSE_PRESSED then
+        self:clearSelection()
         return self:handleMousePress(event.data.x, event.data.y, event.data.button)
     elseif event.type == EventType.MOUSE_MOVED then
         return self:handleMouseMove(event.data.x, event.data.y, event.data.dx, event.data.dy)
@@ -341,18 +342,31 @@ function TextEditor:handleMousePress(x, y, button)
             self.clickCount = self.clickCount + 1
         else
             self.clickCount = 1
+            if self:hasSelection() then
+                self:clearSelection()
+            end
         end
         self.lastClickTime = currentTime
 
         local relativeX = x - self.x + self.scrollX - self.padding
         local relativeY = y - self.y + self.scrollY - self.padding
-        self.cursorY = math.floor(relativeY / self.lineHeight) + 1
-        self.cursorY = math.max(1, math.min(self.cursorY, #self.lines))
-        self.cursorX = self:getClickPosition(self.lines[self.cursorY], relativeX)
+        local newCursorY = math.floor(relativeY / self.lineHeight) + 1
+        newCursorY = math.max(1, math.min(newCursorY, #self.lines))
+        local newCursorX = self:getClickPosition(self.lines[newCursorY], relativeX)
 
-        if self.clickCount == 1 then
-            self:startSelection()
-        elseif self.clickCount == 2 then
+        -- Clear selection if clicking outside the current selection
+        if self.selectionStart and self.selectionEnd then
+            if not self:isPositionInSelection(newCursorX, newCursorY) then
+                self:clearSelection()
+            end
+        end
+
+        self.cursorX = newCursorX
+        self.cursorY = newCursorY
+
+        self:startSelection()
+
+        if self.clickCount == 2 then
             self:selectWord()
         elseif self.clickCount >= 3 then
             self:selectLine()
@@ -380,8 +394,10 @@ end
 
 function TextEditor:handleMouseRelease(x, y, button)
     if button == 1 then  -- Left mouse button
-        if self.clickCount == 1 and self.selectionStart.x == self.cursorX and self.selectionStart.y == self.cursorY then
-            self:clearSelection()
+        if self.clickCount == 1 and self.selectionStart then
+            if self.selectionStart.x == self.cursorX and self.selectionStart.y == self.cursorY then
+                self:clearSelection()
+            end
         end
         return true
     end
@@ -417,8 +433,10 @@ function TextEditor:getClickPosition(line, relativeX)
 end
 
 function TextEditor:startSelection()
-    self.selectionStart = {x = self.cursorX, y = self.cursorY}
-    self.selectionEnd = {x = self.cursorX, y = self.cursorY}
+    if not self.selectionStart then
+        self.selectionStart = {x = self.cursorX, y = self.cursorY}
+        self.selectionEnd = {x = self.cursorX, y = self.cursorY}
+    end
 end
 
 function TextEditor:updateSelection()
@@ -451,6 +469,9 @@ function TextEditor:getSelectedText()
     if not self:hasSelection() then return "" end
     
     local start, endSel = self:getSelectionRange()
+
+    if not (start and endSel) then return "" end
+
     local text = ""
     
     for y = start.y, endSel.y do
@@ -473,6 +494,8 @@ function TextEditor:deleteSelectedText()
     if not self:hasSelection() then return end
     
     local start, endSel = self:getSelectionRange()
+
+    if not (start and endSel) then return end
     
     if start.y == endSel.y then
         local line = self.lines[start.y]
