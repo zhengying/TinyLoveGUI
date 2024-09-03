@@ -11,20 +11,20 @@ PopupWindow.currentTarget = nil
 function PopupWindow:init(x, y, width, height, text, targetX, targetY, targetWidth, targetHeight, arrowDirection)
     local maxWidth = width or 300
     self.font = love.graphics.newFont(12)
-    self.padding = 5
+    self.padding = {left=5, right=5, top=5, bottom=5}
 
     -- Create a text object with wrapping
     self.textObject = love.graphics.newText(self.font, text)
-    self.textObject:setf(text, maxWidth - 2 * self.padding, "left")
+    self.textObject:setf(text, maxWidth - 2 * self.padding.left, "left")
     -- Get the actual dimensions of the wrapped text
     local textWidth, textHeight = self.textObject:getDimensions()
     
     -- Adjust the popup size based on the text dimensions
-    width = math.max(width or 0, textWidth + 2 * self.padding)
-    height = math.max(height or 0, textHeight + 2 * self.padding)
+    width = math.max(width or 0, textWidth + 2 * self.padding.left)
+    height = math.max(height or 0, textHeight + 2 * self.padding.top)   
 
     PopupWindow.super.init(self, x, y, width, height)
-    self.text = text or ""
+    self._text = text or ""
     self.targetX = targetX
     self.targetY = targetY
     self.targetWidth = targetWidth or 0
@@ -71,7 +71,7 @@ function PopupWindow:draw()
     love.graphics.setColor(unpack(self.textColor))
     love.graphics.setFont(self.font)
     --love.graphics.printf(self.text, self.padding, self.padding, self.width - 2 * self.padding, "left")
-    love.graphics.draw(self.textObject, self.padding, self.padding)
+    love.graphics.draw(self.textObject, self.padding.left, self.padding.top)
     
     love.graphics.pop()
 end
@@ -222,7 +222,8 @@ function PopupWindow:calculateAutoDirection()
 end
 
 function PopupWindow:setText(text)
-    self.text = text
+    self._text = text
+    self.textObject:setf(text, self.width - 2 * self.padding.left, "left")
 end
 
 function PopupWindow:setTarget(x, y, width, height)

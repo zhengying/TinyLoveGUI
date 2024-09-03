@@ -67,6 +67,7 @@ function GUIElement:init(x, y, width, height, bgcolor)
     self.y = y or 0
     self.width = width or 100
     self.height = height or 100
+    self.resizing = false
     -- if type(self.width) ~= "number" or type(self.height) ~= "number" then
     --     print("Warning: GUIElement initialized with invalid dimensions", self.tag, self.width, self.height)
     --     self.width = self.width or 100
@@ -129,9 +130,14 @@ function GUIElement:setFocus()
 end
 
 function GUIElement:resize(width, height)
+    assert(self.resizing == false, "seems loop reize the element")
+
+    self.context.debug_print_log('start reizing:' .. self.tag)
+
     local oldWidth, oldHeight = self.width, self.height
     self.width = width
     self.height = height
+    self.resizing = true
     
     -- Calculate the available space for children, considering padding
     local childWidth = width - (self.padding.left + self.padding.right)
@@ -147,11 +153,13 @@ function GUIElement:resize(width, height)
     
     -- Call onResize if it exists
     if self.onResize then
-        self:onResize(oldWidth, oldHeight, width, height)
+        self:onResize(oldWidth, oldHeight)
     end
+
+    self.resizing = false
 end
 
-function GUIElement:onParentResize(parentWidth, parentHeight)
+function GUIElement:onResize(parentWidth, parentHeight)
     -- Default implementation does nothing
     -- Subclasses can override this to respond to parent resizing
 end

@@ -104,7 +104,9 @@ function FlowLayout:updateFrame()
     end
 
     for _, child in ipairs(self.children) do
-        child:onParentResize(self.width, self.height)
+        if child.onParentResize then
+            child:onParentResize(self.width, self.height)
+        end
     end
     
     self:updateChildrenPositions()
@@ -113,9 +115,9 @@ end
 function FlowLayout:onParentResize(parentWidth, parentHeight)
     if self.sizeMode.width == FlowLayout.SizeMode.FILL_PARENT or self.sizeMode.height == FlowLayout.SizeMode.FILL_PARENT then
         self:updateFrame()
-        for _, child in ipairs(self.children) do
-            child:onParentResize(self.width, self.height)
-        end
+        -- for _, child in ipairs(self.children) do
+        --     child:onParentResize(self.width, self.height)
+        -- end
     end
 end
 

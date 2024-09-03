@@ -14,7 +14,7 @@ local TinyLoveGUI = require('TinyLoveGUI')
 local GUIElement = TinyLoveGUI.GUIElement
 local TreeView = TinyLoveGUI.TreeView
 local TreeNode = TreeView.TreeNode
-local TextField = TinyLoveGUI.TextField
+local TextEditor = TinyLoveGUI.TextEditor
 local Button = TinyLoveGUI.Button
 local GUIContext = TinyLoveGUI.GUIContext
 local FlowLayout = TinyLoveGUI.FlowLayout
@@ -47,8 +47,17 @@ mainLayout:addChild(menuBar)
 
 menuBar.direction = FlowLayout.Direction.HORIZONTAL
 local fileButton = Button(0, 0, 60, 30, {text="File"})
+fileButton.tooltips_enabled = true
+fileButton.tooltips_text = "File"
 local editButton = Button(0, 0, 60, 30, {text="Edit"})
+editButton.tooltips_enabled = true
+editButton.tooltips_text = "Edit"
 local viewButton = Button(0, 0, 60, 30, {text="View"})
+viewButton.tooltips_enabled = true
+viewButton.tooltips_text = "View"
+local helpButton = Button(0, 0, 60, 30, {text="Help"})
+helpButton.tooltips_enabled = true
+helpButton.tooltips_text = "Help"
 menuBar:addChild(fileButton)
 menuBar:addChild(editButton)
 menuBar:addChild(viewButton)
@@ -66,7 +75,7 @@ root:addChild(TreeNode("README.md"))
 fileTree:setRoot(root)
 
 -- Create text editor
-local textEditor = TextField(0, 0, w - 200, h - 30)
+local textEditor = TextEditor(0, 0, w - 200, h - 30)
 textEditor.multiline = true
 textEditor:setText("Select a file to edit")
 
