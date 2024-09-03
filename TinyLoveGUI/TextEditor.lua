@@ -25,27 +25,6 @@ local function utf8_sub(str, start_index, end_index)
     return string.sub(str, start_byte, end_byte - 1)
 end
 
--- local function utf8_sub(str, start_index, end_index)
---     if not end_index then
---         end_index = -1
---     end
-    
---     local start_byte = utf8.offset(str, start_index)
---     local end_byte
-    
---     if end_index >= 0 then
---         end_byte = utf8.offset(str, end_index + 1) - 1
---     else
---         end_byte = utf8.offset(str, utf8.len(str) + end_index + 1) - 1
---     end
-    
---     return string.sub(str, start_byte, end_byte)
--- end
-
-
--- local a = utf8_sub("1234567890", 1)
--- print(a)
-
 utf8.sub = utf8_sub
 local TextEditor = GUIElement:extend()
 
