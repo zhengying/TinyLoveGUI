@@ -125,36 +125,37 @@ function TextEditor:updateScroll()
 end
 
 function TextEditor:moveCursor(dx, dy)
-    self.cursorY = math.max(1, math.min(self.cursorY + dy, #self.lines))
-    local line = self.lines[self.cursorY] or ""
-    local lineLength = utf8.len(line)
-    if self.cursorX < 1 then
-        if self.cursorY > 1 then
-            self.cursorY = self.cursorY - 1
-            self.cursorX = utf8.len(self.lines[self.cursorY]) + 1
-        else
-            self.cursorX = 1
-        end
-    elseif self.cursorX > lineLength + 1 then
-        if self.cursorY < #self.lines then
-            self.cursorY = self.cursorY + 1
-            self.cursorX = 1
-        else
-            self.cursorX = lineLength + 1
-        end
+    if dy ~= 0 then
+        self.cursorY = math.max(1, math.min(self.cursorY + dy, #self.lines))
+        local line = self.lines[self.cursorY] or ""
+        self.cursorX = math.min(self.cursorX, utf8.len(line) + 1)
     else
-        self.cursorX = self.cursorX + dx
+        self:moveCursorByUTF8Chars(dx)
     end
     
     self:updateScroll()
 end
 
-function TextEditor:insertCharacter(char)
+function TextEditor:moveCursorByUTF8Chars(chars)
+    local line = self.lines[self.cursorY] or ""
+    local newCursorX = self.cursorX + chars
+    
+    if newCursorX > utf8.len(line) + 1 then
+        newCursorX = utf8.len(line) + 1
+    elseif newCursorX < 1 then
+        newCursorX = 1
+    end
+    
+    self.cursorX = newCursorX
+end
+
+function TextEditor:insertCharacter(text)
     local line = self.lines[self.cursorY] or ""
     local before = utf8_sub(line, 1, self.cursorX - 1)
     local after = utf8_sub(line, self.cursorX)
-    self.lines[self.cursorY] = before .. char .. after
-    self:moveCursor(1, 0)
+    self.lines[self.cursorY] = before .. text .. after
+    self:moveCursorByUTF8Chars(utf8.len(text))
+    self:updateScroll()
 end
 
 function TextEditor:deleteCharacter()
@@ -163,14 +164,29 @@ function TextEditor:deleteCharacter()
         local before = utf8_sub(line, 1, self.cursorX - 2)
         local after = utf8_sub(line, self.cursorX)
         self.lines[self.cursorY] = before .. after
-        self:moveCursor(-1, 0)
+        self:moveCursorByUTF8Chars(-1)
     elseif self.cursorY > 1 then
         local previousLine = self.lines[self.cursorY - 1] or ""
         self.cursorX = utf8.len(previousLine) + 1
         self.lines[self.cursorY - 1] = previousLine .. line
         table.remove(self.lines, self.cursorY)
-        self:moveCursor(0, -1)
+        self.cursorY = self.cursorY - 1
     end
+    self:updateScroll()
+end
+
+function TextEditor:deleteCharacterForward()
+    local line = self.lines[self.cursorY] or ""
+    if self.cursorX <= utf8.len(line) then
+        local before = utf8_sub(line, 1, self.cursorX - 1)
+        local after = utf8_sub(line, self.cursorX + 1)
+        self.lines[self.cursorY] = before .. after
+    elseif self.cursorY < #self.lines then
+        local nextLine = self.lines[self.cursorY + 1] or ""
+        self.lines[self.cursorY] = line .. nextLine
+        table.remove(self.lines, self.cursorY + 1)
+    end
+    self:updateScroll()
 end
 
 function TextEditor:insertNewline()
@@ -248,45 +264,6 @@ function TextEditor:update(dt)
         end
     end
 end
-
--- function TextEditor:onInput(event)
---     if TextEditor.super.onInput(self, event) then
---         return true
---     end
-
---     if event.type == EventType.KEY_PRESSED then
---         if event.data.key == "left" then
---             self:moveCursor(-1, 0)
---         elseif event.data.key == "right" then
---             self:moveCursor(1, 0)
---         elseif event.data.key == "up" then
---             self:moveCursor(0, -1)
---         elseif event.data.key == "down" then
---             self:moveCursor(0, 1)
---         elseif event.data.key == "backspace" then
---             self:deleteCharacter()
---         elseif event.data.key == "return" then
---             self:insertNewline()
---         end
---         return true
---     elseif event.type == EventType.TEXT_INPUT then
---         self:insertCharacter(event.data.text)
---         return true
---     elseif event.type == EventType.MOUSE_PRESSED then
---         return self:handleMousePress(event.data.x, event.data.y, event.data.button)
---     elseif event.type == EventType.MOUSE_MOVED then
---         return self:handleMouseMove(event.data.x, event.data.y, event.data.dx, event.data.dy)
---     elseif event.type == EventType.MOUSE_RELEASED then
---         return self:handleMouseRelease(event.data.x, event.data.y, event.data.button)
---     elseif event.type == EventType.TOUCH_PRESSED then
---         return self:handleTouchPress(event.data.id, event.data.x, event.data.y)
---     elseif event.type == EventType.TOUCH_MOVED then
---         return self:handleTouchMove(event.data.id, event.data.x, event.data.y, event.data.dx, event.data.dy)
---     elseif event.type == EventType.TOUCH_RELEASED then
---         return self:handleTouchRelease(event.data.id, event.data.x, event.data.y)
---     end
---     return false
--- end
 
 function TextEditor:onInput(event)
     if TextEditor.super.onInput(self, event) then
