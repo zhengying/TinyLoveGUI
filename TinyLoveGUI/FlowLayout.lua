@@ -44,6 +44,7 @@ FlowLayout.SizeMode = {
     WRAP_CONTENT = "WRAP_CONTENT"
 }
 
+---@class FlowLayout
 ---@param x number
 ---@param y number
 ---@param width? number
@@ -52,7 +53,7 @@ FlowLayout.SizeMode = {
 ---@param padding? table|number
 ---@param alignment? FlowLayout.Alignment
 ---@param direction? FlowLayout.Direction
-function FlowLayout:init(x, y, width, height, bgcolor, padding, alignment, direction, sizeMode)
+function FlowLayout:init(x, y, width, height, bgcolor, padding, alignment, direction, sizeMode,crossAxisSizeMode)
     FlowLayout.super.init(self, x, y, width, height, bgcolor)
     if type(padding) == 'number' then
         padding = {left=padding, right=padding, top=padding, bottom=padding} 
@@ -67,6 +68,9 @@ function FlowLayout:init(x, y, width, height, bgcolor, padding, alignment, direc
     self.measuredWidth = 0
     self.measuredHeight = 0
     self.gap = gap or 0
+
+    -- cross axis size mode
+    self.crossAxisSizeMode = crossAxisSizeMode or FlowLayout.SizeMode.WRAP_CONTENT
 
     self.width = width or 0
     self.height = height or 0
@@ -92,13 +96,13 @@ function FlowLayout:updateFrame()
     local parentWidth, parentHeight = self.parent:getSize()
     
     if self.sizeMode.width == FlowLayout.SizeMode.FILL_PARENT then
-        self.width = parentWidth
+        self.width = parentWidth - self.x
     elseif self.sizeMode.width == FlowLayout.SizeMode.WRAP_CONTENT then
         self.width = self.measuredWidth
     end
     
     if self.sizeMode.height == FlowLayout.SizeMode.FILL_PARENT then
-        self.height = parentHeight
+        self.height = parentHeight - self.y
     elseif self.sizeMode.height == FlowLayout.SizeMode.WRAP_CONTENT then
         self.height = self.measuredHeight
     end
@@ -110,6 +114,12 @@ function FlowLayout:updateFrame()
     end
     
     self:updateChildrenPositions()
+
+    for _, child in ipairs(self.children) do
+        if child.layoutComplete then
+            child:layoutComplete(self.width, self.height)
+        end
+    end
 end
 
 function FlowLayout:onParentResize(parentWidth, parentHeight)
@@ -234,15 +244,21 @@ function FlowLayout:updateChildrenPositions()
     for i, child in ipairs(self.children) do
         child[mainAxis] = currentPos
 
-        -- Apply cross-axis alignment
-        if self.alignment == FlowLayout.Alignment.START then
+        -- Apply cross-axis sizing and alignment
+        if self.crossAxisSizeMode == FlowLayout.SizeMode.FILL_PARENT then
+            child[crossDim] = self[crossDim] - (isVertical and (self.padding.left + self.padding.right) or (self.padding.top + self.padding.bottom))
             child[crossAxis] = isVertical and self.padding.left or self.padding.top
-        elseif self.alignment == FlowLayout.Alignment.CENTER then
-            child[crossAxis] = (self[crossDim] - child[crossDim]) / 2
-        elseif self.alignment == FlowLayout.Alignment.END then
-            child[crossAxis] = self[crossDim] - child[crossDim] - (isVertical and self.padding.right or self.padding.bottom)
         else
-            child[crossAxis] = isVertical and self.padding.left or self.padding.top
+            -- Apply existing cross-axis alignment logic
+            if self.alignment == FlowLayout.Alignment.START then
+                child[crossAxis] = isVertical and self.padding.left or self.padding.top
+            elseif self.alignment == FlowLayout.Alignment.CENTER then
+                child[crossAxis] = (self[crossDim] - child[crossDim]) / 2
+            elseif self.alignment == FlowLayout.Alignment.END then
+                child[crossAxis] = self[crossDim] - child[crossDim] - (isVertical and self.padding.right or self.padding.bottom)
+            else
+                child[crossAxis] = isVertical and self.padding.left or self.padding.top
+            end
         end
         
         currentPos = currentPos + child[mainDim] + spacing

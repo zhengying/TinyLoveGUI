@@ -146,9 +146,12 @@ function TreeView:draw()
 
     love.graphics.push()
     love.graphics.translate(self.x, self.y)
-    
+
+    love.graphics.setColor(0.3,0.3,0.3,1)
+
     love.graphics.setScissor(self.x, self.y, self.width, self.height)
     love.graphics.translate(-self.offsetX, -self.offsetY)
+
     self:drawNodes()
     love.graphics.setScissor()
     
@@ -157,9 +160,21 @@ function TreeView:draw()
     self:drawScrollbars()
 end
 
+function TreeView:onParentResize(width, height)
+    self:updateContentSize()
+end
+
+function TreeView:layoutComplete()
+    self:updateContentSize()
+end
+
 function TreeView:drawNodes()
     love.graphics.setColor(self.style.bgColor)
-    love.graphics.rectangle("fill", 0, 0, self.contentWidth, self.contentHeight)
+    if self.contentHeight > 400 then
+        love.graphics.rectangle("fill", 0, 0, self.contentWidth, self.contentHeight)
+    end
+    self.context.debug_print_log("TreeView:drawNodes w:".. tostring(self.contentWidth).. "h:" .. tostring(self.contentHeight))
+    love.graphics.setColor({1,1,1,1})
 
     -- Draw border
     love.graphics.setColor(self.style.borderColor)
@@ -360,6 +375,11 @@ function TreeView:calculateContentHeight(node, depth)
                 height = height + self:calculateContentHeight(child, depth + 1)
             end
         end
+
+        if height > 400 then
+            print("TreeView:calculateContentHeight height:" .. tostring(height) .. " depth:" .. tostring(depth) .. " node:" .. tostring(node.title) );
+        end
+
         return height
     end
 
@@ -371,11 +391,20 @@ function TreeView:calculateContentHeight(node, depth)
         end
     end
 
+    if height > 400 then
+        print("TreeView:calculateContentHeight height:" .. tostring(height) .. " depth:" .. tostring(depth) .. " node:" .. tostring(node.title) );
+    end
+
     return height
 end
 
 function TreeView:updateContentSize()
     self.contentHeight = self:calculateContentHeight(self.root, 0) + self.style.marginTop + self.style.marginBottom
+
+    if self.contentHeight > 400 then
+        print("TreeView:updateContentSize height:" .. tostring(self.contentHeight) );
+    end
+
     self.contentWidth = self:calculateContentWidth(self.root, 0)
     self:updateScrollbars()
 end

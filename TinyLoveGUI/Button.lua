@@ -143,13 +143,13 @@ local function handleKeyPress(self, key)
 end
 
 function Button:onPointerEnter()
-    self.context:debug_print_log('Button:'..self.options.text ..' onPointerEnter')
+    self.context.debug_print_log('Button:'.. self.options.text ..' onPointerEnter')
     self:_stateChanged(GUIContext.State.HOVER)
     return true
 end
 
 function Button:onPointerLeave()
-    self.context:debug_print_log('Button:'..self.options.text ..' onPointerLeave')
+    self.context.debug_print_log('Button:'..self.options.text ..' onPointerLeave')
     self:_stateChanged(GUIContext.State.NORMAL)
     return true
 end

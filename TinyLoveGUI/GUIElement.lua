@@ -82,14 +82,14 @@ function GUIElement:init(x, y, width, height, bgcolor)
     self.state = GUIContext.State.NORMAL
     self.tag = "GUIElement"
     self.zIndex = GUIContext.ZIndexGroup.NORMAL
-    self.DEBUG_DRAW = false
+    self.DEBUG_DRAW = true
     self.context = nil
     -- focus
     self.focusable = true
     self.highligtable = true
     self.cid = 0
     -- self.focused = false
-    self.padding = {left=0, right=0, top=0, bottom=0}
+    --self.padding = {left=0, right=0, top=0, bottom=0}
 
     self.visible = true  -- New property to control visibility
 end
@@ -140,8 +140,8 @@ function GUIElement:resize(width, height)
     self.resizing = true
     
     -- Calculate the available space for children, considering padding
-    local childWidth = width - (self.padding.left + self.padding.right)
-    local childHeight = height - (self.padding.top + self.padding.bottom)
+    local childWidth = width -- - (self.padding.left + self.padding.right)
+    local childHeight = height --  - (self.padding.top + self.padding.bottom)
     
     -- Notify children of the resize
     for _, child in ipairs(self.children) do

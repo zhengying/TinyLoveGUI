@@ -63,11 +63,20 @@ menuBar:addChild(editButton)
 menuBar:addChild(viewButton)
 
 -- Create content layout
-local contentLayout = FlowLayout(0, 0, nil, w-40, {1,1,1}, {left=5, right=5, top=5, bottom=5}, FlowLayout.Alignment.START, FlowLayout.Direction.HORIZONTAL, {width=FlowLayout.SizeMode.FILL_PARENT, height=FlowLayout.SizeMode.FIXED})
+
+local contentLayout = FlowLayout(0, 0, nil, w-40, {1,1,1}, 
+                                {left=5, right=5, top=5, bottom=5}, 
+                                FlowLayout.Alignment.START, 
+                                FlowLayout.Direction.HORIZONTAL, 
+                                {width=FlowLayout.SizeMode.FILL_PARENT, 
+                                height=FlowLayout.SizeMode.FILL_PARENT},
+                                FlowLayout.SizeMode.FILL_PARENT)
+
 contentLayout.direction = FlowLayout.Direction.HORIZONTAL
 
 -- Create file tree
-local fileTree = TreeView(0, 0, 200, h - 30)
+local fileTree = TreeView(0, 0, 200, nil)
+fileTree.style.nodeHeight = 20
 local root = TreeNode("Project")
 root:addChild(TreeNode("src"))
 root:addChild(TreeNode("assets"))
@@ -75,8 +84,7 @@ root:addChild(TreeNode("README.md"))
 fileTree:setRoot(root)
 
 -- Create text editor
-local textEditor = TextEditor(0, 0, w - 200, h - 30)
-textEditor.multiline = true
+local textEditor = TextEditor(0, 0, w - 200, nil)
 textEditor:setText("Select a file to edit")
 
 mainLayout:addChild(contentLayout)
