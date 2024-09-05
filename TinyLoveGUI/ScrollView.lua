@@ -70,6 +70,7 @@ function ScrollView:draw()
     love.graphics.intersectScissor(globalx, globaly, self.width, self.height)
     love.graphics.push()
     love.graphics.translate(-self.offsetX, -self.offsetY)
+    self:onDraw()
     for _, child in ipairs(self.children) do
         child:draw()
     end 
@@ -78,6 +79,10 @@ function ScrollView:draw()
     love.graphics.pop()
 
     self:drawScrollbars()
+end
+
+function ScrollView:onDraw()
+    -- override this function to draw custom content
 end
 
 function ScrollView:drawScrollbars()

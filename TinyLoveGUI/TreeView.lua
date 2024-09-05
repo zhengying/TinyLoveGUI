@@ -141,23 +141,29 @@ function TreeView:setStyle(style)
     self:updateContentSize()
 end
 
-function TreeView:draw()
-    if not self.visible then return end
+-- function TreeView:draw()
+--     if not self.visible then return end
 
-    love.graphics.push()
-    love.graphics.translate(self.x, self.y)
+--     love.graphics.push()
+--     love.graphics.translate(self.x, self.y)
 
-    love.graphics.setColor(0.3,0.3,0.3,1)
+--     love.graphics.setColor(0.3,0.3,0.3,1)
 
-    love.graphics.setScissor(self.x, self.y, self.width, self.height)
-    love.graphics.translate(-self.offsetX, -self.offsetY)
+--     love.graphics.setScissor(self.x, self.y, self.width, self.height)
+--     love.graphics.translate(-self.offsetX, -self.offsetY)
 
-    self:drawNodes()
-    love.graphics.setScissor()
+--     self:drawNodes()
+--     love.graphics.setScissor()
     
-    love.graphics.pop()
+--     love.graphics.pop()
 
-    self:drawScrollbars()
+--     self:drawScrollbars()
+-- end
+
+function TreeView:onDraw()
+    love.graphics.setColor(0.3,0.3,0.3,1)
+    self:drawNodes()
+    love.graphics.setColor(1,1,1,1)
 end
 
 function TreeView:onParentResize(width, height)
