@@ -22,7 +22,7 @@ local InputEventUtils = TinyLoveGUI.InputEventUtils
 
 
 
-love.window.setMode(1280, 720, {highdpi=true, resizable = true})
+love.window.setMode(1280, 720, {highdpi = true, resizable = true})
 local w, h = love.window.getMode()
 local context = GUIContext(0, 0, w, h)
 
@@ -81,6 +81,24 @@ local root = TreeNode("Project")
 root:addChild(TreeNode("src"))
 root:addChild(TreeNode("assets"))
 root:addChild(TreeNode("README.md"))
+root:addChild(TreeNode("src"))
+root:addChild(TreeNode("assets"))
+root:addChild(TreeNode("README.md"))
+root:addChild(TreeNode("src"))
+root:addChild(TreeNode("assets"))
+root:addChild(TreeNode("README.md"))
+root:addChild(TreeNode("src"))
+root:addChild(TreeNode("assets"))
+root:addChild(TreeNode("README.md"))
+root:addChild(TreeNode("src"))
+root:addChild(TreeNode("assets"))
+root:addChild(TreeNode("README.md"))
+root:addChild(TreeNode("src"))
+root:addChild(TreeNode("assets"))
+root:addChild(TreeNode("README.md"))
+root:addChild(TreeNode("src"))
+root:addChild(TreeNode("assets"))
+root:addChild(TreeNode("README.md"))
 fileTree:setRoot(root)
 
 -- Create text editor
@@ -120,6 +138,10 @@ end
 
 function love.mousemoved(x, y, dx, dy, istouch)
     context:mousemoved(x, y, dx, dy, istouch)
+end
+
+function love.wheelmoved(x, y)
+    context:wheelmoved(x, y)
 end
 
 function love.textinput(text)
