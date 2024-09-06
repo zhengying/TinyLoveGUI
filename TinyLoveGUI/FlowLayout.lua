@@ -64,12 +64,13 @@ function FlowLayout:init(x, y, width, height, bgcolor, padding, alignment, direc
     self.tag = "FlowLayout"
     self.focusable = false
     self.highligtable = false
-    self.expandingChildren = {}
+    self.spaceWeightChildren = {}
     self.measuredWidth = 0
     self.measuredHeight = 0
     self.gap = gap or 0
 
     -- cross axis size mode
+
     self.crossAxisSizeMode = crossAxisSizeMode or FlowLayout.SizeMode.WRAP_CONTENT
 
     self.width = width or 0
@@ -77,7 +78,7 @@ function FlowLayout:init(x, y, width, height, bgcolor, padding, alignment, direc
     self.sizeMode = sizeMode or {
         width = width and FlowLayout.SizeMode.FIXED or FlowLayout.SizeMode.WRAP_CONTENT,
         height = height and FlowLayout.SizeMode.FIXED or FlowLayout.SizeMode.WRAP_CONTENT
-    }
+    } 
 end
 
 function FlowLayout:onAddToContext(context)
@@ -159,11 +160,11 @@ function FlowLayout:getHeight()
 end
 
 ---@param child GUIElement
----@param expandPriority? number
-function FlowLayout:addChild(child, expandPriority)
+---@param spaceWeight? number
+function FlowLayout:addChild(child, spaceWeight)
     FlowLayout.super.addChild(self, child)
-    if expandPriority and expandPriority > 0 then
-        self.expandingChildren[child] = expandPriority
+    if spaceWeight and spaceWeight > 0 then
+        self.spaceWeightChildren[child] = spaceWeight
     end
     self:updateFrame()
 end
@@ -198,7 +199,7 @@ function FlowLayout:updateChildrenPositions()
     local childCount = #self.children
 
     local totalExpandPriority = 0
-    for _, priority in pairs(self.expandingChildren) do
+    for _, priority in pairs(self.spaceWeightChildren) do
         totalExpandPriority = totalExpandPriority + priority
     end
 
@@ -210,8 +211,8 @@ function FlowLayout:updateChildrenPositions()
     local spacePerPriority = totalExpandPriority > 0 and remainingSpace / totalExpandPriority or 0
 
     for _, child in ipairs(self.children) do
-        if self.expandingChildren[child] then
-            child[mainDim] = spacePerPriority * self.expandingChildren[child]
+        if self.spaceWeightChildren[child] then
+            child[mainDim] = spacePerPriority * self.spaceWeightChildren[child]
         end
         local childWidth, childHeight = child:getSize()
         maxChildWidth = math.max(maxChildWidth, childWidth)
@@ -284,13 +285,13 @@ end
 
 function FlowLayout:removeChild(child)
     FlowLayout.super.removeChild(self, child)
-    self.expandingChildren[child] = nil
+    self.spaceWeightChildren[child] = nil
     self:updateFrame()
 end
 
 function FlowLayout:clearChildren()
     FlowLayout.super.clearChildren(self)
-    self.expandingChildren = {}
+    self.spaceWeightChildren = {}
     self:updateFrame()
 end
 

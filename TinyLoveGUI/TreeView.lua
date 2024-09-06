@@ -176,9 +176,7 @@ end
 
 function TreeView:drawNodes()
     love.graphics.setColor(self.style.bgColor)
-    if self.contentHeight > 400 then
-        love.graphics.rectangle("fill", 0, 0, self.contentWidth, self.contentHeight)
-    end
+
     self.context.debug_print_log("TreeView:drawNodes w:".. tostring(self.contentWidth).. "h:" .. tostring(self.contentHeight))
     love.graphics.setColor({1,1,1,1})
 
@@ -382,10 +380,6 @@ function TreeView:calculateContentHeight(node, depth)
             end
         end
 
-        if height > 400 then
-            print("TreeView:calculateContentHeight height:" .. tostring(height) .. " depth:" .. tostring(depth) .. " node:" .. tostring(node.title) );
-        end
-
         return height
     end
 
@@ -397,19 +391,11 @@ function TreeView:calculateContentHeight(node, depth)
         end
     end
 
-    if height > 400 then
-        print("TreeView:calculateContentHeight height:" .. tostring(height) .. " depth:" .. tostring(depth) .. " node:" .. tostring(node.title) );
-    end
-
     return height
 end
 
 function TreeView:updateContentSize()
     self.contentHeight = self:calculateContentHeight(self.root, 0) + self.style.marginTop + self.style.marginBottom
-
-    if self.contentHeight > 400 then
-        print("TreeView:updateContentSize height:" .. tostring(self.contentHeight) );
-    end
 
     self.contentWidth = self:calculateContentWidth(self.root, 0)
     self:updateScrollbars()
