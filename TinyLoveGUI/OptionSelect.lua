@@ -53,11 +53,11 @@ end
 function OptionSelect:draw()
     love.graphics.push()
     love.graphics.translate(self.x, self.y)
-    self:drawSelf()
+    self:onDraw()
     love.graphics.pop()
 end
 
-function OptionSelect:drawSelf()
+function OptionSelect:onDraw()
     -- Draw the main control
     love.graphics.setColor(0.8, 0.8, 0.8)
     love.graphics.rectangle("fill", 0, 0, self.width, self.height)

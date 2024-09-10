@@ -115,7 +115,7 @@ function TreeView:init(x, y, width, height)
         borderColor = {0.6, 0.6, 0.6, 1},
         borderWidth = 1
     }
-    self:updateContentSize()
+    --self:updateContentSize()
 end
 
 function TreeView:setRoot(root)
@@ -185,7 +185,7 @@ function TreeView:drawNodes()
     love.graphics.setLineWidth(self.style.borderWidth)
     love.graphics.rectangle("line", 0, 0, self.contentWidth, self.contentHeight)
 
-    -- Draw nodes
+    --Draw nodes
     self:drawNode(self.root, 0, self.style.marginTop)
 end
 
@@ -316,12 +316,12 @@ function TreeView:getNodeAt(x, y)
 end
 
 function TreeView:getContentHeight()
-    self.yOffset = 0
+    --self.yOffset = 0
     return self:calculateContentHeight(self.root, 0)
 end
 
 function TreeView:getContentWidth()
-    self.contentWidth = 0
+    --self.contentWidth = 0
     return self:calculateContentWidth(self.root, 0)
 end
 

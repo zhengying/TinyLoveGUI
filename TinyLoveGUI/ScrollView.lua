@@ -59,23 +59,35 @@ function ScrollView:updateContentSize()
 end
 
 function ScrollView:draw()
-    love.graphics.setColor(0.5,0,1,1)
-    love.graphics.rectangle("line",self.x,self.y,self.width, self.height)
+    if self.DEBUG_DRAW then
+        love.graphics.setColor(0.5,0,1,1)
+        love.graphics.rectangle("line",self.x,self.y,self.width, self.height)
+        print('scrollview w:' .. tostring(self.width) .. "h:" .. tostring(self.height))
+        print('scrollview cw:' .. tostring(self.contentWidth) .. "ch:" .. tostring(self.contentHeight))
+
+
+        
+    end
 
     love.graphics.push()
     love.graphics.translate(self.x, self.y)
     love.graphics.setColor(1,0,1,1)
 
     local globalx, globaly = self:getGlobalPosition()
-    love.graphics.intersectScissor(globalx, globaly, self.width, self.height)
-    love.graphics.push()
-    love.graphics.translate(-self.offsetX, -self.offsetY)
-    self:onDraw()
-    for _, child in ipairs(self.children) do
-        child:draw()
-    end 
-    love.graphics.pop()
-    love.graphics.setScissor()
+    if self.width > 0 and self.height > 0 then
+        love.graphics.intersectScissor(self.x, self.y, self.width, self.height)
+        love.graphics.push()
+        love.graphics.translate(-self.offsetX, -self.offsetY)
+        self:onDraw()
+        for _, child in ipairs(self.children) do
+            child:draw()
+        end 
+        love.graphics.pop()
+        love.graphics.setScissor()
+    else
+        print("Warning: Invalid ScrollView dimensions. Skipping scissor.")
+    end
+
     love.graphics.pop()
 
     self:drawScrollbars()

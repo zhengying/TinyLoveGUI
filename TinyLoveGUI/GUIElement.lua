@@ -79,10 +79,13 @@ function GUIElement:init(x, y, width, height, bgcolor)
         bgcolor = {r=bgcolor[1],g=bgcolor[2],b=bgcolor[3]}
     end
     self.bgcolor = bgcolor or {r=0.5,g=0.5,b=0.5}
+    if self.bgcolor.b > 0 then  
+        print("ddd")
+    end
     self.state = GUIContext.State.NORMAL
     self.tag = "GUIElement"
     self.zIndex = GUIContext.ZIndexGroup.NORMAL
-    self.DEBUG_DRAW = true
+    self.DEBUG_DRAW = false
     self.context = nil
     -- focus
     self.focusable = true
@@ -291,7 +294,7 @@ function GUIElement:draw()
 
     love.graphics.setColor(self.bgcolor.r, self.bgcolor.g, self.bgcolor.b)
     love.graphics.translate(self.x, self.y)
-    self:drawSelf()
+    self:onDraw()
     for _, child in ipairs(self.children) do
         child:draw()
     end
@@ -301,7 +304,7 @@ end
 
 
 
-function GUIElement:drawSelf()
+function GUIElement:onDraw()
     -- draw...
 end
 

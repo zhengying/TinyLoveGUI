@@ -100,7 +100,7 @@ function TextField:onFocusLost()
 end
 
 
-function TextField:drawSelf()
+function TextField:onDraw()
     love.graphics.setColor(self.bgcolor.r, self.bgcolor.g, self.bgcolor.b)
     love.graphics.rectangle("fill", 0, 0, self.width, self.height)
     
