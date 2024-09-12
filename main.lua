@@ -24,10 +24,9 @@ local GUIContext = TinyLoveGUI.GUIContext
 
 local myProgressBar
 
-local w, h =  love.window.getMode()
-local context = GUIContext(0, 0, w, h)
 
-local function createGUI()
+
+local function createGUI(context)
     local simpleButton = Button(0, 0, 200, 50, {
         text = "Click me!",
         normalColor = {0.2, 0.6, 0.8, 1},
@@ -186,74 +185,67 @@ local function createGUI()
     --     }},
     -- })
 
-    -- local menu = TreeView(150, 50, 300, 150)
-    -- menu.displayMode = TreeView.DisplayMode.POPUP_MENU
-    -- context:addChild(menu)
 
-    -- -- Add a right-click handler to mainView
-    -- mainView.onRightClick = function(self, x, y)
-    --     menu:show(x, y)
-    -- end 
     -- In your main update/draw loop:
 
-    -- local panel = ModalWindow(330, 300, 600, 200, context, {
-    --     backgroundColor = {0.2, 0.2, 0.2, 1},
-    --     borderColor = {0.5, 0.5, 0.5, 1},
-    --     borderWidth = 1,
-    --     })
-    --     panel:setNineSliceBackground(love.graphics.newImage("assets/images/panel1.png"), {left = 4, right = 4, top = 5, bottom = 5})
+    local panel = ModalWindow(330, 300, 600, 200, context, {
+        backgroundColor = {0.2, 0.2, 0.2, 1},
+        borderColor = {0.5, 0.5, 0.5, 1},
+        borderWidth = 1,
+        })
+        panel:setNineSliceBackground(love.graphics.newImage("assets/images/panel1.png"), {left = 4, right = 4, top = 5, bottom = 5})
 
-        --context:addChild(panel)
+        -- context:addChild(panel)
 
    -- Create a popup menu using TreeView
---    local contextMenu = PopupMenu(0, 0, 200, 300)
---    contextMenu:hide()  -- Initially hidden
+   local contextMenu = PopupMenu(0, 0, 200, 300)
+   contextMenu:hide()  -- Initially hidden
 
---    -- Create menu items
---    local fileMenu = MenuItem("File")
---    local editMenu = MenuItem("Edit")
---    local helpMenu = MenuItem("Help")
+   -- Create menu items
+   local fileMenu = MenuItem("File")
+   local editMenu = MenuItem("Edit")
+   local helpMenu = MenuItem("Help")
 
---    -- Add sub-items to File menu
---    fileMenu:addChild(MenuItem("New", function() print("New file") end))
---    fileMenu:addChild(MenuItem("Open", function() 
---     print("Open file") 
---     panel:doModal()
---    end))
---    fileMenu:addChild(MenuItem("Save", function() print("Save file") end))
+   -- Add sub-items to File menu
+   fileMenu:addChild(MenuItem("New", function() print("New file") end))
+   fileMenu:addChild(MenuItem("Open", function() 
+    print("Open file") 
+    panel:doModal()
+   end))
+   fileMenu:addChild(MenuItem("Save", function() print("Save file") end))
 
---    local copyMenu = MenuItem("Copy", function() print("Copy") end)
---    copyMenu:addChild(MenuItem("Copy Plain Text", function() print("Copy Plain Text") end))
---    copyMenu:addChild(MenuItem("Copy HTML", function() print("Copy HTML") end))
+   local copyMenu = MenuItem("Copy", function() print("Copy") end)
+   copyMenu:addChild(MenuItem("Copy Plain Text", function() print("Copy Plain Text") end))
+   copyMenu:addChild(MenuItem("Copy HTML", function() print("Copy HTML") end))
 
---     -- Add sub-items to Edit menu
---    editMenu:addChild(copyMenu)
---    editMenu:addChild(MenuItem("Cut", function() print("Cut") end))
---    editMenu:addChild(MenuItem("Paste", function() print("Paste") end))
+    -- Add sub-items to Edit menu
+   editMenu:addChild(copyMenu)
+   editMenu:addChild(MenuItem("Cut", function() print("Cut") end))
+   editMenu:addChild(MenuItem("Paste", function() print("Paste") end))
 
---    -- Add sub-items to Help menu
---    helpMenu:addChild(MenuItem("About", function() print("About") end))
---    -- Add main menu items to the context menu
---    contextMenu.root:addChild(fileMenu)
---    contextMenu.root:addChild(editMenu)
---    contextMenu.root:addChild(helpMenu)
+   -- Add sub-items to Help menu
+   helpMenu:addChild(MenuItem("About", function() print("About") end))
+   -- Add main menu items to the context menu
+   contextMenu.root:addChild(fileMenu)
+   contextMenu.root:addChild(editMenu)
+   contextMenu.root:addChild(helpMenu)
 
---    -- Add the context menu to mainView
---    context:addChild(contextMenu)
+   -- Add the context menu to mainView
+   context:addChild(contextMenu)
 
 
---    --right-click handler to mainView
---    context:setOnRightClick(function(self, x, y)
---        contextMenu.x = x
---        contextMenu.y = y
---        contextMenu:show(x, y)
+   --right-click handler to mainView
+   context:setOnRightClick(function(self, x, y)
+       contextMenu.x = x
+       contextMenu.y = y
+       contextMenu:show(x, y)
 
---     --    local element = context:elementAtPosition(x, y)
---     --    local element_x, element_y = element:getGlobalPosition()
+    --    local element = context:elementAtPosition(x, y)
+    --    local element_x, element_y = element:getGlobalPosition()
 
---     --    local popup = TinyLoveGUI.PopupWindow.show(context, element_x, element_y, element.width, element.height, 100, 100, "This is a popup!")
---        --popup:setTarget(element.x, element.y, element.width, element.height)
---    end)
+    --    local popup = TinyLoveGUI.PopupWindow.show(context, element_x, element_y, element.width, element.height, 100, 100, "This is a popup!")
+       --popup:setTarget(element.x, element.y, element.width, element.height)
+   end)
 
 
 
@@ -265,9 +257,13 @@ end
 -- LÖVE callbacks
 local gui
 
+local window_width, widown_height = 1024, 768
 function love.load()
-    love.window.setMode(1024, 768,{highdpi=false})
-    gui = createGUI()
+    
+    love.window.setMode(window_width, widown_height,{highdpi=true})
+    
+    local context = GUIContext(0, 0, window_width, widown_height)
+    gui = createGUI(context)
 end
 
 function love.update(dt)

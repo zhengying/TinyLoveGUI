@@ -27,7 +27,6 @@ local EventType = InputEventUtils.EventType
 local InputEvent = InputEventUtils.InputEvent 
 local KeyCode = InputEventUtils.KeyCode
 
-
 -- Helper function to split string into lines
 function string:split(sep)
     local sep, fields = sep or ":", {}
@@ -357,7 +356,18 @@ end
 --     end
 -- end
 
+
+local function print_event_info(self, event)
+    local Utils = require(cwd .. "Utils")
+    Utils.print_table(event)
+end
+
 local function handlePositionalInput(self, event)
+    if event.type ~= EventType.MOUSE_MOVED then
+        self.context.debug_print_log("--- EVENT COMING ---")
+        print_event_info(self,event)
+    end
+
     if (not self:isPointInside(event.data.x, event.data.y)) or self.visible == false then
         --self.context.debug_print_log("==== not point inside:" .. self.tag)
         return false
@@ -510,8 +520,10 @@ end
 function GUIElement:onInput(event)
     -- Default implementation, to be overridden in subclasses
     if (event.type == EventType.MOUSE_PRESSED or event.type == EventType.TOUCH_PRESSED) then
+
         if event.data.button == 2 then
             if self.onRightClick then
+                self.context.debug_print_log('mouse right clicked!')
                 self.onRightClick(self, event.data.x, event.data.y)
             end
         end
@@ -519,4 +531,4 @@ function GUIElement:onInput(event)
     return false
 end
 
-return GUIElement
+return GUIElement   

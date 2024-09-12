@@ -94,7 +94,7 @@ function GUIContext:init(x, y, width, height)
 
     local w, h =  love.window.getMode()
     self.width = width or w
-    self.hight = height or h
+    self.height = height or h
     local GUIElement = require(cwd .. "GUIElement")
     local mainView = GUIElement(0, 0, width, height)
     self:setRoot(mainView)
@@ -295,7 +295,7 @@ function GUIContext:handleHighlightClear(event)
         if self.highlightElement then
             local localX, localY = event.data.x, event.data.y --self.highlightElement:toLocalCoordinates(event.data.x, event.data.y)
             if not self.highlightElement:isPointInside(localX, localY) then
-                print('highlightElement: ' .. self.highlightElement.tag  .. 'state:' ..self.highlightElement.state .. ' is not point inside')
+                --print('highlightElement: ' .. self.highlightElement.tag  .. 'state:' ..self.highlightElement.state .. ' is not point inside')
                 if self.highlightElement.state == GUIContext.State.HOVER or self.highlightElement.state == GUIContext.State.PRESSED then
                     if self.highlightElement.onPointerLeave then
                         self.highlightElement:onPointerLeave()
@@ -303,7 +303,7 @@ function GUIContext:handleHighlightClear(event)
                     self.highlightElement = nil
                     self:emitLocalEvent(self.LocalEvents.HIGHLIGHT_CHANGED,nil)
                 else
-                    print('highlightElement not hover: ' .. self.highlightElement.tag  .. 'state:' ..self.highlightElement.state)
+                    --print('highlightElement not hover: ' .. self.highlightElement.tag  .. 'state:' ..self.highlightElement.state)
                 end
             end 
         else

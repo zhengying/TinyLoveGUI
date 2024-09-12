@@ -38,10 +38,10 @@ function ModalWindow:animation_init(context)
     self.duration = 0.5
     local type = self.animate_type or GUIElement.Animate_type.TOP_DOWN
     self.animate_type = type
-    local screen_center_x, screen_center_y = (context.w-self.width)/2, (context.h-self.height)/2
+    local screen_center_x, screen_center_y = (context.width-self.width)/2, (context.height-self.height)/2
     self.x = screen_center_x
     self.y = screen_center_y
-    local game_w, game_h = self.context.w, self.context.h
+    local game_w, game_h = self.context.width, self.context.height
 
     if type == GUIElement.Animate_type.ALPHA then 
         self.animated_from = {bg_alpha = 0}
