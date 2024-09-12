@@ -163,7 +163,7 @@ function GUIContext:setHighlight(element)
         end
         self:emitLocalEvent(self.LocalEvents.HIGHLIGHT_CHANGED,element)
     else
-        print('setHighlight error: ' .. tostring(element) .. ' is nil')
+        --print('setHighlight error: ' .. tostring(element) .. ' is nil')
     end
 end
 
@@ -295,7 +295,7 @@ function GUIContext:handleHighlightClear(event)
         if self.highlightElement then
             local localX, localY = event.data.x, event.data.y --self.highlightElement:toLocalCoordinates(event.data.x, event.data.y)
             if not self.highlightElement:isPointInside(localX, localY) then
-                --print('highlightElement: ' .. self.highlightElement.tag  .. 'state:' ..self.highlightElement.state .. ' is not point inside')
+                print('highlightElement: ' .. self.highlightElement.tag  .. 'state:' ..self.highlightElement.state .. ' is not point inside')
                 if self.highlightElement.state == GUIContext.State.HOVER or self.highlightElement.state == GUIContext.State.PRESSED then
                     if self.highlightElement.onPointerLeave then
                         self.highlightElement:onPointerLeave()

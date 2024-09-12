@@ -268,6 +268,16 @@ function GUIElement:_stateChanged(new_state)
     self.state = new_state
 end
 
+function GUIElement:onPointerEnter()
+    self:_stateChanged(GUIContext.State.HOVER)
+    return true
+end
+
+function GUIElement:onPointerLeave()
+    self:_stateChanged(GUIContext.State.NORMAL)
+    return true
+end
+
 function GUIElement:removeChild(child)
     for i, c in ipairs(self.children) do
         if c == child then

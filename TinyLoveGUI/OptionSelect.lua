@@ -35,6 +35,7 @@ OptionSelect:implement(TooltipsMixin)
 function OptionSelect:init(x, y, width, height, options, defaultOption)
     OptionSelect.super.init(self, x, y, width, height)
     self.options = options or {}
+    TooltipsMixin.TooltipsMixin_init(self, options)
     self.selectedOption = defaultOption or (options and options[1]) or nil
     self.selectedIndex = defaultOption and table.indexof(options, defaultOption) or 1
     self.isOpen = false
@@ -47,7 +48,7 @@ function OptionSelect:init(x, y, width, height, options, defaultOption)
     self.tag = 'OptionSelect'
     self.highligtable = true
 
-    TooltipsMixin.TooltipsMixin_init(self, options)
+
 end
 
 function OptionSelect:draw()

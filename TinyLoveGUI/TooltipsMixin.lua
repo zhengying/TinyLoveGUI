@@ -32,8 +32,15 @@ end
 
 
 function TooltipsMixin:onHighlightChanged(element)
+
+    print('onHighlightChanged:'.. (element and element.tag or 'null'))
+
     if not self.tooltips_enabled then
         return
+    end
+
+    if self.tag == 'OptionSelect' then
+        print('OptionSelect onHighlightChanged')
     end
 
     if element == self then

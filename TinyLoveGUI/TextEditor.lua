@@ -189,7 +189,7 @@ function TextEditor:draw()
     
     -- Set up scissor to clip text
     local globalX, globalY = self:getGlobalPosition()
-    love.graphics.setScissor(globalX, globalY, self.width, self.height)
+    love.graphics.intersectScissor(globalX, globalY, self.width, self.height)
     
     -- Draw text
     love.graphics.setColor(unpack(self.textColor))
