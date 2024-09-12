@@ -37,16 +37,16 @@ end
 function ProgressBar:draw()
     -- Draw background
     love.graphics.setColor(unpack(self.backgroundColor))
-    love.graphics.rectangle("fill", 0, 0, self.width, self.height)
+    love.graphics.rectangle("fill", self.x, self.y, self.width, self.height)
     
     -- Draw progress
     local progressWidth = (self.value / self.max) * self.width
     love.graphics.setColor(unpack(self.color))
-    love.graphics.rectangle("fill", 0, 0, progressWidth, self.height)
+    love.graphics.rectangle("fill", self.x, self.y, progressWidth, self.height)
     
     -- Draw border
     love.graphics.setColor(unpack(self.borderColor))
-    love.graphics.rectangle("line", 0, 0, self.width, self.height)
+    love.graphics.rectangle("line", self.x, self.y, self.width, self.height)
     
     -- Optionally, draw text showing the percentage
     love.graphics.setColor(0, 0, 0)

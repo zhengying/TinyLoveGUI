@@ -40,7 +40,6 @@ function ScrollView:init(x, y, width, height)
     self.scrollbarGrabOffset = 0
     self.scrollview = true
     self.tag = 'ScrollView'
-    
 end
 
 function ScrollView:addChild(child)
@@ -62,11 +61,6 @@ function ScrollView:draw()
     if self.DEBUG_DRAW then
         love.graphics.setColor(0.5,0,1,1)
         love.graphics.rectangle("line",self.x,self.y,self.width, self.height)
-        print('scrollview w:' .. tostring(self.width) .. "h:" .. tostring(self.height))
-        print('scrollview cw:' .. tostring(self.contentWidth) .. "ch:" .. tostring(self.contentHeight))
-
-
-        
     end
 
     love.graphics.push()
@@ -75,7 +69,7 @@ function ScrollView:draw()
 
     local globalx, globaly = self:getGlobalPosition()
     if self.width > 0 and self.height > 0 then
-        love.graphics.intersectScissor(self.x, self.y, self.width, self.height)
+        love.graphics.intersectScissor(globalx, globaly, self.width, self.height)
         love.graphics.push()
         love.graphics.translate(-self.offsetX, -self.offsetY)
         self:onDraw()
@@ -225,7 +219,7 @@ end
 function ScrollView:scrollHorizontalTo(newOffsetX)
     self.offsetX = math.max(0, math.min(newOffsetX, self.contentWidth - self.width))
 end
-
+ 
 function ScrollView:isMouseOverVerticalScrollbar(x, y)
     if self.contentHeight <= self.height then return false end
     local scrollbarHeight = self:getVerticalScrollbarHeight()
@@ -271,4 +265,6 @@ function ScrollView:updateScrollbars()
     self.offsetY = math.max(self.offsetY, 0)
 end
 
+
 return ScrollView
+

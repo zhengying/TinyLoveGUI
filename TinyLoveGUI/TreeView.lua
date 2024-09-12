@@ -109,8 +109,8 @@ function TreeView:init(x, y, width, height)
         indentSize = 20,
         nodeHeight = 24,
         iconSize = 16,
-        marginLeft = 16,
-        marginTop = 8,
+        marginLeft = 5,
+        marginTop = 2,
         marginBottom = 2,
         borderColor = {0.6, 0.6, 0.6, 1},
         borderWidth = 1
@@ -120,6 +120,7 @@ end
 
 function TreeView:setRoot(root)
     self.root = root
+    self:updateContentSize()
 end
 
 function TreeView:setDefaultGroupIcon(foldIcon, expandedIcon)
@@ -177,13 +178,14 @@ end
 function TreeView:drawNodes()
     love.graphics.setColor(self.style.bgColor)
 
-    self.context.debug_print_log("TreeView:drawNodes w:".. tostring(self.contentWidth).. "h:" .. tostring(self.contentHeight))
+    --self.context.debug_print_log("TreeView:drawNodes w:".. tostring(self.contentWidth).. "h:" .. tostring(self.contentHeight))
+    love.graphics.rectangle("fill", 0, 0, self.contentWidth, self.contentHeight)
     love.graphics.setColor({1,1,1,1})
 
     -- Draw border
     love.graphics.setColor(self.style.borderColor)
     love.graphics.setLineWidth(self.style.borderWidth)
-    love.graphics.rectangle("line", 0, 0, self.contentWidth, self.contentHeight)
+    love.graphics.rectangle("line", 0, 0, self.contentWidth+1, self.contentHeight+1)
 
     --Draw nodes
     self:drawNode(self.root, 0, self.style.marginTop)
@@ -272,9 +274,11 @@ function TreeView:drawNode(node, depth, y)
 end
 
 local function handlePress(self, x, y, button)
+    local local_x, local_y = x - self.x, y - self.y
+    self.context.debug_print_log("press: localX:".. tostring(x).. " y:" .. tostring(y))
     if button and button ~= 1 then return false end  -- Only handle left mouse button or touch
 
-    self.selectedNode = self:getNodeAt(x + self.offsetX, y + self.offsetY)
+    self.selectedNode = self:getNodeAt(local_x + self.offsetX, local_y + self.offsetY)
     if self.selectedNode then
         self.selectedNode:toggleExpanded()
         self:updateContentSize()
@@ -285,10 +289,13 @@ local function handlePress(self, x, y, button)
 end
 
 local function handleMove(self, x, y, dx, dy)
+    local local_x, local_y = x - self.x, y - self.y
+
+    self.context.debug_print_log("x:".. tostring(x).. " y:" .. tostring(y))
     if not (self.isDraggingVerticalScrollbar or self.isDraggingHorizontalScrollbar) then
         -- Adjust localY by the vertical scroll offset
-        y = y + self.offsetY
-        self.hoveredNode = self:getNodeAt(x, y)
+        local_y = local_y + self.offsetY
+        self.hoveredNode = self:getNodeAt(local_x, local_y)
     else
         self.hoveredNode = nil  -- Clear hover state when dragging scrollbar
     end

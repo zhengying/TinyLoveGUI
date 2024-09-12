@@ -307,7 +307,7 @@ function GUIContext:handleHighlightClear(event)
                 end
             end 
         else
-            print('highlightElement is nil')
+            --print('highlightElement is nil')
         end
     end
 end

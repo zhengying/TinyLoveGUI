@@ -375,9 +375,9 @@ local function handlePositionalInput(self, event)
         local child = self.children[i]
         if child:isPointInside(localX, localY) and child.visible == true then
 
-            -- if event.type == EventType.MOUSE_PRESSED then
-            --     print("==== mouse pressed:" .. self.tag)
-            -- end
+            if event.type == EventType.MOUSE_PRESSED then
+                print("==== mouse pressed:" .. self.tag)
+            end
 
 
             local localData = {}
@@ -386,6 +386,7 @@ local function handlePositionalInput(self, event)
             end
             localData.x, localData.y = localX, localY
             local localEvent = InputEvent(event.type, localData)
+            
             handled = child:handleInput(localEvent)
             if handled then
                 if child:isFocusable() and (event.type == EventType.MOUSE_MOVED or event.type == EventType.MOUSE_PRESSED or event.type == EventType.TOUCH_PRESSED) then
@@ -447,8 +448,23 @@ end
 
 
 function GUIElement:getGlobalPosition()
-
     local x, y = self.x, self.y
+    local parent = self.parent
+    while parent do
+        local offsetX = 0
+        local offsetY = 0
+        if parent.scrollview == true then
+            offsetX = parent.offsetX
+            offsetY = parent.offsetY
+        end
+        x = x + parent.x - offsetX
+        y = y + parent.y - offsetY
+        parent = parent.parent
+    end
+    return x, y
+end
+
+function GUIElement:getGlobalPositionByLocalXY(x, y)
     local parent = self.parent
     while parent do
         local offsetX = 0

@@ -5,6 +5,7 @@ Object.__index = Object
 
 -- local DEBUG_DRAW = true
 
+
 function Object:init() end
 
 function Object:extend()
