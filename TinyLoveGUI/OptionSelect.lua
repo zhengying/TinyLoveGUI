@@ -80,9 +80,12 @@ function OptionSelect:onDraw()
         love.graphics.rectangle("fill", 0, self.height, self.width, dropdownHeight)
         love.graphics.setColor(0, 0, 0)
         love.graphics.rectangle("line", 0, self.height, self.width, dropdownHeight)
-        
+
+
+
+        local globalx, globaly = self:getGlobalPosition()
         -- Set scissor to clip content
-        love.graphics.setScissor(self.x, self.y + self.height, self.width, dropdownHeight)
+        love.graphics.intersectScissor(globalx, globaly + self.height, self.width, dropdownHeight)
         
         for i = 1, #self.options do
             local y = self.height + (i - 1 - self.scrollOffset) * self.itemHeight
@@ -113,10 +116,11 @@ function OptionSelect:onDraw()
 end
 
 local function handlePress(self, x, y, button)      
-    
-    if self:containsPoint(x, y) then
+    local local_x, local_y = x - self.x, y - self.y
+
+    if self:containsPoint(local_x, local_y) then
         if button == 1 then  -- Left mouse button
-            if y < self.height then
+            if local_y < self.height then
                 self.isOpen = not self.isOpen
                 if self.isOpen then
                     self:setZIndex(GUIContext.ZIndexGroup.POPUP)
@@ -124,11 +128,11 @@ local function handlePress(self, x, y, button)
                     self:setZIndex(GUIContext.ZIndexGroup.NORMAL)
                 end
             elseif self.isOpen then
-                if  x > self.width - self.scrollbarWidth and #self.options > self.maxVisibleItems then
+                if  local_x > self.width - self.scrollbarWidth and #self.options > self.maxVisibleItems then
                     self.isDraggingScrollbar = true
-                    self:updateScrollFromMouseY(y) 
+                    self:updateScrollFromMouseY(local_y) 
                 else
-                    local index = math.floor((y - self.height) / self.itemHeight) + 1 + self.scrollOffset
+                    local index = math.floor((local_y - self.height) / self.itemHeight) + 1 + self.scrollOffset
                     if index > 0 and index <= #self.options then
                         self.selectedOption = self.options[index]
                         self.selectedIndex = index
@@ -153,6 +157,7 @@ end
 
 local function handleMove(self, x, y, dx, dy)
 
+    local x, y = x - self.x, y - self.y
     if self.isOpen and self:containsPoint(x, y) then
         if self.isDraggingScrollbar then
             self:updateScrollFromMouseY(y)

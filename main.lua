@@ -52,9 +52,11 @@ local function createGUI(context)
         end
     })
     -- (x, y, width, height, bgcolor, padding, alignment, direction, sizeMode, crossAlignment, gap)
-    local rowLayout = FlowLayout(100, 200, 800, 600, {r=0.1,g=0.1,b=0.1}, 5, FlowLayout.Alignment.START, 
+    local rowLayout = FlowLayout(0, 0, nil, nil, {r=0.1,g=0.1,b=0.1}, 5, FlowLayout.Alignment.START, 
                                                     FlowLayout.Direction.VERTICAL,
-                                                    {width=FlowLayout.SizeMode.FIXED,height=FlowLayout.SizeMode.FIXED},FlowLayout.CrossAlignment.CENTER, 10)
+                                                    {width=FlowLayout.SizeMode.FILL_PARENT,
+                                                    height=FlowLayout.SizeMode.FILL_PARENT},
+                                                    FlowLayout.CrossAlignment.CENTER, 10)
     rowLayout.DEBUG_DRAW = true
     context:addChild(rowLayout)
     -- rowLayout:addChild(simpleButton)
@@ -92,9 +94,9 @@ local function createGUI(context)
     TreeView:setDefaultLeafIcon(leafIcon)
 
     local treeView = TreeView(0, 0, 200, 150)
-    treeView = Utils.observable(treeView,'contentHeight',function(listenkey, oldValue, newValue)
-        print("good catch!")
-    end);
+    -- treeView = Utils.observable(treeView,'contentHeight',function(listenkey, oldValue, newValue)
+    --     print("good catch!")
+    -- end);
 
     -- local treeView = Utils.makeObservable(treeView, {
     --     onChange = function(key, newValue, oldValue)
@@ -166,24 +168,27 @@ local function createGUI(context)
     rowLayout:addChild(myProgressBar)
     treeView.DEBUG_DRAW = true
 
-    rowLayout:addChild(treeView,1,1,'auto')
+    --rowLayout:addChild(treeView,1,1,'auto')
 
-    -- local optionSelect = OptionSelect(20, 150, 100, 30, {"Option 1", "Option 2", "Option 3", "Option 4", "Option 5", "Option 6","Option 1", "Option 2", "Option 3", "Option 4", "Option 5", "Option 6"})
-    -- optionSelect.tag = "optionSelect"
-    -- optionSelect.tooltips_enabled = true
-    -- optionSelect.tooltips_text = "this is an OptionSelect"
-    -- optionSelect.onChange = function(selectedOption, selectedIndex)
-    -- print("Selected: " .. selectedOption .. " at index " .. selectedIndex)
-    -- end
-    -- context:addChild(optionSelect)
-    -- local menu = PopupMenu({
-    --     {text = "Copy", action = function() print("Copy") end},
-    --     {text = "Paste", action = function() print("Paste") end},
-    --     {text = "More Options", submenu = {
-    --         {text = "Option 1", action = function() print("Option 1") end},
-    --         {text = "Option 2", action = function() print("Option 2") end},
-    --     }},
-    -- })
+    local optionSelect = OptionSelect(20, 150, 100, 30, {"Option 1", "Option 2", "Option 3", "Option 4", "Option 5", "Option 6","Option 1", "Option 2", "Option 3", "Option 4", "Option 5", "Option 6"})
+    optionSelect.tag = "optionSelect"
+    optionSelect.tooltips_enabled = true
+    optionSelect.tooltips_text = "this is an OptionSelect, just test for long text, here we go"
+    optionSelect.onChange = function(selectedOption, selectedIndex)
+    print("Selected: " .. selectedOption .. " at index " .. selectedIndex)
+    end
+    rowLayout:addChild(optionSelect)
+
+
+
+    local menu = PopupMenu({
+        {text = "Copy", action = function() print("Copy") end},
+        {text = "Paste", action = function() print("Paste") end},
+        {text = "More Options", submenu = {
+            {text = "Option 1", action = function() print("Option 1") end},
+            {text = "Option 2", action = function() print("Option 2") end},
+        }},
+    })
 
 
     -- In your main update/draw loop:
@@ -246,6 +251,10 @@ local function createGUI(context)
     --    local popup = TinyLoveGUI.PopupWindow.show(context, element_x, element_y, element.width, element.height, 100, 100, "This is a popup!")
        --popup:setTarget(element.x, element.y, element.width, element.height)
    end)
+
+
+   rowLayout:addChild(simpleButton)
+   rowLayout:addChild(simpleButton2)
 
 
 

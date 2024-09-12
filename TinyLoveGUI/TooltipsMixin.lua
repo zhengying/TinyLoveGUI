@@ -51,7 +51,7 @@ function TooltipsMixin:showTooltip()
         local localpos = self:tooltipPosition()
         PopupWindow.customShowTooltipAt()
     else
-        PopupWindow.showTooltip(self,self.tooltips_text, self.width, self.height, 'left')
+        PopupWindow.showTooltip(self,self.tooltips_text, nil, nil, 'left')
     end
     self.tooltips_showed = true
 end

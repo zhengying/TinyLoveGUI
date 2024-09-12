@@ -9,19 +9,21 @@ PopupWindow.currentTooltip = nil
 PopupWindow.currentTarget = nil
 
 function PopupWindow:init(x, y, width, height, text, targetX, targetY, targetWidth, targetHeight, arrowDirection)
-    local maxWidth = width or 300
+    local maxWidth = width or 200
     self.font = love.graphics.newFont(12)
-    self.padding = {left=5, right=5, top=5, bottom=5}
+    self.padding = {left=10, right=10, top=10, bottom=10}
+    self.minWidth = 100
+    self.minHeight = 40
 
     -- Create a text object with center alignment
     self.textObject = love.graphics.newText(self.font)
-    self.textObject:setf(text, maxWidth - 2 * self.padding.left, "center")
+    self.textObject:setf(text, maxWidth - self.padding.left - self.padding.right, "left")
     -- Get the actual dimensions of the wrapped text
     local textWidth, textHeight = self.textObject:getDimensions()
     
     -- Adjust the popup size based on the text dimensions
-    width = math.max(width or 0, textWidth + 2 * self.padding.left)
-    height = math.max(height or 0, textHeight + 2 * self.padding.top)   
+    width = math.max(width or 0, textWidth + self.padding.left + self.padding.right)
+    height = math.max(height or 0, textHeight + self.padding.top + self.padding.bottom)   
 
     PopupWindow.super.init(self, x, y, width, height)
     self._text = text or ""
@@ -44,7 +46,6 @@ function PopupWindow:init(x, y, width, height, text, targetX, targetY, targetWid
     self.maxArrowLength = 10
     self.cornerGap = 20
     self.visible = false
-
     
  
 end
@@ -69,9 +70,11 @@ function PopupWindow:draw()
     love.graphics.setFont(self.font)
     
     -- Draw the text centered
-    love.graphics.printf(self._text, self.padding.left, (self.height - self.font:getHeight()) / 2, 
-                         self.width - self.padding.left - self.padding.right, "center")
-    
+    -- love.graphics.printf(self.textObject, self.padding.left, (self.height - self.textObject:getHeight() ) / 2, 
+    --                      self.width - self.padding.left - self.padding.right, "left")
+   
+    love.graphics.draw(self.textObject, self.padding.left, self.padding.top)
+
     love.graphics.pop()
 end
 
