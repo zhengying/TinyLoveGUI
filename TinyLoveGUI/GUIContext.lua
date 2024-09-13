@@ -189,7 +189,7 @@ function GUIContext:setFocus(element)
         return
     end
     
-    GUIContext.debug_print_log("focus: " .. tostring(self.focusedElement and self.focusedElement.tag or 'nil') .. '->' .. tostring(element and element.tag or 'nil'))
+    --GUIContext.debug_print_log("focus: " .. tostring(self.focusedElement and self.focusedElement.tag or 'nil') .. '->' .. tostring(element and element.tag or 'nil'))
     if self.focusedElement then
         self.focusedElement:onFocusLost()
     end

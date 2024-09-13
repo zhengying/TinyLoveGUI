@@ -20,6 +20,7 @@ local PopupMenu = TinyLoveGUI.PopupMenu
 local MenuItem = PopupMenu.MenuItem
 local ModalWindow = TinyLoveGUI.ModalWindow
 local GUIContext = TinyLoveGUI.GUIContext
+local TextEditor = TinyLoveGUI.TextEditor
 
 
 local myProgressBar
@@ -64,25 +65,25 @@ local function createGUI(context)
 
 
 
-    -- local textField = TextField(0,0,80,30,{
-    --     maxLength = 16,
-    --     inputType = "number"
-    -- })
+    local textField = TextField(0,0,80,30,{
+        maxLength = 16,
+        inputType = "number"
+    })
 
 
-    -- local textField1 = TextField(0,0,80,30,{
-    --     maxLength = 10,
-    --     customValidate = function(text)
-    --         -- Example: Only allow even numbers
-    --         local number = tonumber(text)
-    --         return number ~= nil and number % 2 == 0
-    --     end
-    -- })
+    local textField1 = TextField(0,0,80,30,{
+        maxLength = 10,
+        customValidate = function(text)
+            -- Example: Only allow even numbers
+            local number = tonumber(text)
+            return number ~= nil and number % 2 == 0
+        end
+    })
 
 
-    -- textField.text = "1"
-    -- rowLayout:addChild(textField)1`
-    -- rowLayout:addChild(textField1)
+    textField.text = "1"
+    rowLayout:addChild(textField)
+    rowLayout:addChild(textField1)
 
     local groupIcon_fold = love.graphics.newImage("assets/images/folder.png")
     local groupIcon_open = love.graphics.newImage("assets/images/openfolder.png")
@@ -94,21 +95,7 @@ local function createGUI(context)
     TreeView:setDefaultLeafIcon(leafIcon)
 
     local treeView = TreeView(0, 0, 200, 150)
-    -- treeView = Utils.observable(treeView,'contentHeight',function(listenkey, oldValue, newValue)
-    --     print("good catch!")
-    -- end);
 
-    -- local treeView = Utils.makeObservable(treeView, {
-    --     onChange = function(key, newValue, oldValue)
-    --         print("key:".. key)
-    --         if key == 'width'  then
-    --             print('width changed!' .. oldValue .. ' to ' .. newValue)
-    --         end
-    --         --print(string.format("TreeView changed: %s from %s to %s", key, tostring(oldValue), tostring(newValue)))
-    --     end,
-    --     logAccess = true
-    -- })
-    
     -- Adding nodes to the tree
     local node1 = TreeNode("Node 1")
     local node2 = TreeNode("Node 2")
@@ -151,8 +138,6 @@ local function createGUI(context)
     node3:addChild(node16)
     node3:addChild(node17)
 
- 
-
     --Add a slider
     local slider = Slider(0, 0, 600, 30, 0, 100, sliderValue)
     slider.tag = "slider"
@@ -179,7 +164,7 @@ local function createGUI(context)
     end
     rowLayout:addChild(optionSelect)
 
-
+    rowLayout:addChild(treeView)
 
     local menu = PopupMenu({
         {text = "Copy", action = function() print("Copy") end},
@@ -189,8 +174,6 @@ local function createGUI(context)
             {text = "Option 2", action = function() print("Option 2") end},
         }},
     })
-
-
     -- In your main update/draw loop:
 
     local panel = ModalWindow(330, 300, 600, 200, context, {
@@ -255,6 +238,14 @@ local function createGUI(context)
 
    rowLayout:addChild(simpleButton)
    rowLayout:addChild(simpleButton2)
+
+
+   local textEditor = TextEditor(0, 0, 200, 100)
+    textEditor:setText("Select a file to edit")
+
+
+    --Add components to layouts
+    rowLayout:addChild(textEditor,0,1,100)
 
 
 

@@ -56,6 +56,23 @@ function TextEditor:init(x, y, width, height, options)
     self.lastClickTime = 0
     self.clickCount = 0
     self.doubleClickTime = 0.3  -- Adjust this value to change the double-click speed
+
+    self.scrollbarWidth = options.scrollbarWidth or 10
+    self.scrollbarColor = options.scrollbarColor or {0.5, 0.5, 0.5, 1}
+    self.scrollbarHandleColor = options.scrollbarHandleColor or {0.7, 0.7, 0.7, 1}
+    self.isDraggingScrollbar = false
+    self.scrollbarDragOffset = 0
+
+    self.totalScrollableLines = 0
+    self.visibleLines = 0
+    self.maxLineWidth = 0
+    self.horizontalScrollbarHeight = options.horizontalScrollbarHeight or 10
+    self.horizontalScrollbarColor = options.horizontalScrollbarColor or {0.5, 0.5, 0.5, 1}
+    self.horizontalScrollbarHandleColor = options.horizontalScrollbarHandleColor or {0.7, 0.7, 0.7, 1}
+    self.isDraggingHorizontalScrollbar = false
+    self.horizontalScrollbarDragOffset = 0
+    
+    self:updateScrollInfo()
 end
 
 function TextEditor:splitLines(text)
@@ -82,25 +99,20 @@ function TextEditor:getText()
     return self:joinLines()
 end
 
+function TextEditor:updateScrollInfo()
+    self.visibleLines = math.floor((self.height - 2 * self.padding - self.horizontalScrollbarHeight) / self.lineHeight)
+    self.totalScrollableLines = math.max(0, #self.lines - self.visibleLines)
+    
+    self.maxLineWidth = 0
+    for _, line in ipairs(self.lines) do
+        self.maxLineWidth = math.max(self.maxLineWidth, self.font:getWidth(line))
+    end
+end
+
 function TextEditor:updateScroll()
-    self.cursorY = math.max(1, math.min(self.cursorY, #self.lines))
-    local visibleLines = math.floor((self.height - 2 * self.padding) / self.lineHeight)
-    
-    -- Vertical scrolling
-    if self.cursorY < self.scrollY + 1 then
-        self.scrollY = self.cursorY - 1
-    elseif self.cursorY > self.scrollY + visibleLines then
-        self.scrollY = self.cursorY - visibleLines
-    end
-    
-    -- Horizontal scrolling
-    local line = self.lines[self.cursorY] or ""
-    local lineWidth = self.font:getWidth(utf8_sub(line, 1, self.cursorX - 1))
-    if lineWidth < self.scrollX then
-        self.scrollX = lineWidth
-    elseif lineWidth > self.scrollX + self.width - 2 * self.padding then
-        self.scrollX = lineWidth - (self.width - 2 * self.padding)
-    end
+    self:updateScrollInfo()
+    self.scrollY = math.max(0, math.min(self.scrollY, self.totalScrollableLines))
+    self.scrollX = math.max(0, math.min(self.scrollX, self.maxLineWidth - self.width + self.scrollbarWidth + 2 * self.padding))
 end
 
 function TextEditor:moveCursor(dx, dy)
@@ -112,7 +124,7 @@ function TextEditor:moveCursor(dx, dy)
         self:moveCursorByUTF8Chars(dx)
     end
     
-    self:updateScroll()
+    self:ensureCursorVisible()
 end
 
 function TextEditor:moveCursorByUTF8Chars(chars)
@@ -126,6 +138,7 @@ function TextEditor:moveCursorByUTF8Chars(chars)
     end
     
     self.cursorX = newCursorX
+    self:ensureCursorVisible()
 end
 
 function TextEditor:insertCharacter(text)
@@ -135,6 +148,7 @@ function TextEditor:insertCharacter(text)
     self.lines[self.cursorY] = before .. text .. after
     self:moveCursorByUTF8Chars(utf8.len(text))
     self:updateScroll()
+    self:ensureCursorVisible()
 end
 
 function TextEditor:deleteCharacter()
@@ -169,14 +183,18 @@ function TextEditor:deleteCharacterForward()
 end
 
 function TextEditor:insertNewline()
-    if #self.lines < self.maxLines then
-        local line = self.lines[self.cursorY] or ""
-        local before = utf8_sub(line, 1, self.cursorX - 1)
-        local after = utf8_sub(line, self.cursorX)
-        self.lines[self.cursorY] = before
-        table.insert(self.lines, self.cursorY + 1, after)
-        self:moveCursor(-self.cursorX + 1, 1)
-    end
+    local currentLine = self.lines[self.cursorY] or ""
+    local beforeCursor = utf8_sub(currentLine, 1, self.cursorX - 1)
+    local afterCursor = utf8_sub(currentLine, self.cursorX)
+    
+    self.lines[self.cursorY] = beforeCursor
+    table.insert(self.lines, self.cursorY + 1, afterCursor)
+    
+    self.cursorY = self.cursorY + 1
+    self.cursorX = 1
+    
+    self:updateScroll()
+    self:ensureCursorVisible()
 end
 
 function TextEditor:draw()
@@ -189,14 +207,13 @@ function TextEditor:draw()
     
     -- Set up scissor to clip text
     local globalX, globalY = self:getGlobalPosition()
-    love.graphics.intersectScissor(globalX, globalY, self.width, self.height)
+    love.graphics.intersectScissor(globalX, globalY, self.width - self.scrollbarWidth, self.height - self.horizontalScrollbarHeight)
     
     -- Draw text
     love.graphics.setColor(unpack(self.textColor))
     love.graphics.setFont(self.font)
     
-    local visibleLines = math.floor((self.height - 2 * self.padding) / self.lineHeight)
-    for i = 1, visibleLines do
+    for i = 1, self.visibleLines do
         local lineIndex = i + self.scrollY
         if lineIndex <= #self.lines then
             local y = (i - 1) * self.lineHeight + self.padding
@@ -204,8 +221,8 @@ function TextEditor:draw()
         end
     end
     
-    -- Draw cursor
-    if self:isFocused() and self.cursorVisible then
+    -- Draw cursor only if it's within the visible area
+    if self:isFocused() and self.cursorVisible and self.cursorY > self.scrollY and self.cursorY <= self.scrollY + self.visibleLines then
         local line = self.lines[self.cursorY] or ""
         local cursorX = self.font:getWidth(utf8_sub(line, 1, self.cursorX - 1)) + self.padding - self.scrollX
         local cursorY = (self.cursorY - self.scrollY - 1) * self.lineHeight + self.padding
@@ -230,7 +247,52 @@ function TextEditor:draw()
     end
     
     love.graphics.setScissor()
+    
+    -- Draw vertical scrollbar
+    self:drawVerticalScrollbar()
+    
+    -- Draw horizontal scrollbar
+    self:drawHorizontalScrollbar()
+    
     love.graphics.pop()
+end
+
+function TextEditor:drawVerticalScrollbar()
+    local totalLines = #self.lines
+    local visibleLines = math.floor((self.height - 2 * self.padding - self.horizontalScrollbarHeight) / self.lineHeight)
+    
+    if totalLines > visibleLines then
+        local scrollbarHeight = self.height - self.horizontalScrollbarHeight
+        local handleHeight = math.max(20, scrollbarHeight * (visibleLines / totalLines))
+        local handleY = (self.scrollY / self.totalScrollableLines) * (scrollbarHeight - handleHeight)
+        
+        -- Draw scrollbar background
+        love.graphics.setColor(unpack(self.scrollbarColor))
+        love.graphics.rectangle("fill", self.width - self.scrollbarWidth, 0, self.scrollbarWidth, scrollbarHeight)
+        
+        -- Draw scrollbar handle
+        love.graphics.setColor(unpack(self.scrollbarHandleColor))
+        love.graphics.rectangle("fill", self.width - self.scrollbarWidth, handleY, self.scrollbarWidth, handleHeight)
+    end
+end
+
+function TextEditor:drawHorizontalScrollbar()
+    local totalWidth = self.maxLineWidth + 2 * self.padding
+    local visibleWidth = self.width - self.scrollbarWidth
+    
+    if totalWidth > visibleWidth then
+        local scrollbarWidth = self.width - self.scrollbarWidth
+        local handleWidth = math.max(20, scrollbarWidth * (visibleWidth / totalWidth))
+        local handleX = (self.scrollX / (totalWidth - visibleWidth)) * (scrollbarWidth - handleWidth)
+        
+        -- Draw scrollbar background
+        love.graphics.setColor(unpack(self.horizontalScrollbarColor))
+        love.graphics.rectangle("fill", 0, self.height - self.horizontalScrollbarHeight, scrollbarWidth, self.horizontalScrollbarHeight)
+        
+        -- Draw scrollbar handle
+        love.graphics.setColor(unpack(self.horizontalScrollbarHandleColor))
+        love.graphics.rectangle("fill", handleX, self.height - self.horizontalScrollbarHeight, handleWidth, self.horizontalScrollbarHeight)
+    end
 end
 
 function TextEditor:update(dt)
@@ -247,6 +309,16 @@ end
 function TextEditor:onInput(event)
     if TextEditor.super.onInput(self, event) then
         return true
+    end
+
+    if event.type == EventType.MOUSE_PRESSED then
+        return self:handleMousePress(event.data.x, event.data.y, event.data.button)
+    elseif event.type == EventType.MOUSE_MOVED then
+        return self:handleMouseMove(event.data.x, event.data.y, event.data.dx, event.data.dy)
+    elseif event.type == EventType.MOUSE_RELEASED then
+        return self:handleMouseRelease(event.data.x, event.data.y, event.data.button)
+    elseif event.type == EventType.WHEEL_MOVED then
+        return self:handleMouseWheel(event.data.dy)
     end
 
     if event.type == EventType.KEY_PRESSED or event.type == EventType.KEY_REPEATED then
@@ -317,25 +389,27 @@ function TextEditor:onInput(event)
         end
         self:insertCharacter(event.data.text)
         return true
-    elseif event.type == EventType.MOUSE_PRESSED then
-        self:clearSelection()
-        return self:handleMousePress(event.data.x, event.data.y, event.data.button)
-    elseif event.type == EventType.MOUSE_MOVED then
-        return self:handleMouseMove(event.data.x, event.data.y, event.data.dx, event.data.dy)
-    elseif event.type == EventType.MOUSE_RELEASED then
-        return self:handleMouseRelease(event.data.x, event.data.y, event.data.button)
-    elseif event.type == EventType.TOUCH_PRESSED then
-        return self:handleTouchPress(event.data.id, event.data.x, event.data.y)
-    elseif event.type == EventType.TOUCH_MOVED then
-        return self:handleTouchMove(event.data.id, event.data.x, event.data.y, event.data.dx, event.data.dy)
-    elseif event.type == EventType.TOUCH_RELEASED then
-        return self:handleTouchRelease(event.data.id, event.data.x, event.data.y)
     end
     return false
 end
 
 function TextEditor:handleMousePress(x, y, button)
     if button == 1 then  -- Left mouse button
+        local relativeX = x - self.x
+        local relativeY = y - self.y
+        
+        -- Check if the click is on the vertical scrollbar area
+        if relativeX >= self.width - self.scrollbarWidth and relativeY < self.height - self.horizontalScrollbarHeight then
+            self:handleVerticalScrollbarClick(relativeY)
+            return true
+        end
+        
+        -- Check if the click is on the horizontal scrollbar area
+        if relativeY >= self.height - self.horizontalScrollbarHeight and relativeX < self.width - self.scrollbarWidth then
+            self:handleHorizontalScrollbarClick(relativeX)
+            return true
+        end
+        
         self:setFocus()
         local currentTime = love.timer.getTime()
         if currentTime - self.lastClickTime < self.doubleClickTime then
@@ -349,13 +423,13 @@ function TextEditor:handleMousePress(x, y, button)
         self.lastClickTime = currentTime
 
         local relativeX = x - self.x + self.scrollX - self.padding
-        local relativeY = y - self.y + self.scrollY - self.padding
-        local newCursorY = math.floor(relativeY / self.lineHeight) + 1
+        local relativeY = y - self.y - self.padding
+        local newCursorY = math.floor(relativeY / self.lineHeight) + self.scrollY + 1
         newCursorY = math.max(1, math.min(newCursorY, #self.lines))
         local newCursorX = self:getClickPosition(self.lines[newCursorY], relativeX)
 
         -- Clear selection if clicking outside the current selection
-        if self.selectionStart and self.selectionEnd then
+        if self:hasSelection() then
             if not self:isPositionInSelection(newCursorX, newCursorY) then
                 self:clearSelection()
             end
@@ -379,10 +453,19 @@ function TextEditor:handleMousePress(x, y, button)
 end
 
 function TextEditor:handleMouseMove(x, y, dx, dy)
-    if love.mouse.isDown(1) then  -- Left mouse button
+    local relativeX = x - self.x
+    local relativeY = y - self.y
+
+    if self.isDraggingScrollbar then
+        self:updateVerticalScrollbarDrag(relativeY)
+        return true
+    elseif self.isDraggingHorizontalScrollbar then
+        self:updateHorizontalScrollbarDrag(relativeX)
+        return true
+    elseif love.mouse.isDown(1) then  -- Left mouse button
         local relativeX = x - self.x + self.scrollX - self.padding
-        local relativeY = y - self.y + self.scrollY - self.padding
-        self.cursorY = math.floor(relativeY / self.lineHeight) + 1
+        local relativeY = y - self.y - self.padding
+        self.cursorY = math.floor(relativeY / self.lineHeight) + self.scrollY + 1
         self.cursorY = math.max(1, math.min(self.cursorY, #self.lines))
         self.cursorX = self:getClickPosition(self.lines[self.cursorY], relativeX)
         self:updateSelection()
@@ -394,6 +477,14 @@ end
 
 function TextEditor:handleMouseRelease(x, y, button)
     if button == 1 then  -- Left mouse button
+        if self.isDraggingScrollbar then
+            self.isDraggingScrollbar = false
+            return true
+        end
+        if self.isDraggingHorizontalScrollbar then
+            self.isDraggingHorizontalScrollbar = false
+            return true
+        end
         if self.clickCount == 1 and self.selectionStart then
             if self.selectionStart.x == self.cursorX and self.selectionStart.y == self.cursorY then
                 self:clearSelection()
@@ -404,16 +495,11 @@ function TextEditor:handleMouseRelease(x, y, button)
     return false
 end
 
-function TextEditor:handleTouchPress(id, x, y)
-    return self:handleMousePress(x, y, 1)
-end
-
-function TextEditor:handleTouchMove(id, x, y, dx, dy)
-    return self:handleMouseMove(x, y, dx, dy)
-end
-
-function TextEditor:handleTouchRelease(id, x, y)
-    return self:handleMouseRelease(x, y, 1)
+function TextEditor:handleMouseWheel(dy)
+    local scrollSpeed = 3  -- Adjust this value to change scroll speed
+    self.scrollY = math.max(0, math.min(self.scrollY - dy * scrollSpeed, self.totalScrollableLines))
+    self:updateScroll()
+    return true
 end
 
 function TextEditor:getClickPosition(line, relativeX)
@@ -558,6 +644,127 @@ end
 function TextEditor:onFocusLost()
     self.cursorVisible = false
     love.keyboard.setKeyRepeat(self.previousKeyRepeatState)
+end
+
+function TextEditor:handleVerticalScrollbarClick(relativeY)
+    self:updateScrollInfo()
+    local scrollbarHeight = self.height - self.horizontalScrollbarHeight
+    local handleHeight = math.max(20, scrollbarHeight * (self.visibleLines / #self.lines))
+    
+    local handleY = (self.scrollY / self.totalScrollableLines) * (scrollbarHeight - handleHeight)
+    
+    -- Check if click is on the handle
+    if relativeY >= handleY and relativeY <= handleY + handleHeight then
+        self:startVerticalScrollbarDrag(relativeY)
+    else
+        -- Click is on the track, move the handle to this position
+        local newScrollY = ((relativeY - handleHeight / 2) / (scrollbarHeight - handleHeight)) * self.totalScrollableLines
+        self.scrollY = math.max(0, math.min(math.floor(newScrollY), self.totalScrollableLines))
+        self:updateScroll()
+    end
+end
+
+function TextEditor:startVerticalScrollbarDrag(relativeY)
+    self.isDraggingScrollbar = true
+    self:updateScrollInfo()
+    local scrollbarHeight = self.height - self.horizontalScrollbarHeight
+    local handleHeight = math.max(20, scrollbarHeight * (self.visibleLines / #self.lines))
+    local handleY = (self.scrollY / self.totalScrollableLines) * (scrollbarHeight - handleHeight)
+    self.scrollbarDragOffset = relativeY - handleY
+end
+
+function TextEditor:updateVerticalScrollbarDrag(relativeY)
+    self:updateScrollInfo()
+    local scrollbarHeight = self.height - self.horizontalScrollbarHeight
+    local handleHeight = math.max(20, scrollbarHeight * (self.visibleLines / #self.lines))
+    
+    local newHandleY = relativeY - self.scrollbarDragOffset
+    newHandleY = math.max(0, math.min(newHandleY, scrollbarHeight - handleHeight))
+    
+    local newScrollY = (newHandleY / (scrollbarHeight - handleHeight)) * self.totalScrollableLines
+    self.scrollY = math.max(0, math.min(math.floor(newScrollY), self.totalScrollableLines))
+    self:updateScroll()
+end
+
+function TextEditor:handleHorizontalScrollbarClick(relativeX)
+    self:updateScrollInfo()
+    local scrollbarWidth = self.width - self.scrollbarWidth
+    local handleWidth = math.max(20, scrollbarWidth * ((self.width - self.scrollbarWidth) / (self.maxLineWidth + 2 * self.padding)))
+    
+    local handleX = (self.scrollX / (self.maxLineWidth - self.width + self.scrollbarWidth + 2 * self.padding)) * (scrollbarWidth - handleWidth)
+    
+    -- Check if click is on the handle
+    if relativeX >= handleX and relativeX <= handleX + handleWidth then
+        self:startHorizontalScrollbarDrag(relativeX)
+    else
+        -- Click is on the track, move the handle to this position
+        local newScrollX = ((relativeX - handleWidth / 2) / (scrollbarWidth - handleWidth)) * (self.maxLineWidth - self.width + self.scrollbarWidth + 2 * self.padding)
+        self.scrollX = math.max(0, math.min(math.floor(newScrollX), self.maxLineWidth - self.width + self.scrollbarWidth + 2 * self.padding))
+        self:updateScroll()
+    end
+end
+
+function TextEditor:startHorizontalScrollbarDrag(relativeX)
+    self.isDraggingHorizontalScrollbar = true
+    self:updateScrollInfo()
+    local scrollbarWidth = self.width - self.scrollbarWidth
+    local handleWidth = math.max(20, scrollbarWidth * ((self.width - self.scrollbarWidth) / (self.maxLineWidth + 2 * self.padding)))
+    local handleX = (self.scrollX / (self.maxLineWidth - self.width + self.scrollbarWidth + 2 * self.padding)) * (scrollbarWidth - handleWidth)
+    self.horizontalScrollbarDragOffset = relativeX - handleX
+end
+
+function TextEditor:updateHorizontalScrollbarDrag(relativeX)
+    self:updateScrollInfo()
+    local scrollbarWidth = self.width - self.scrollbarWidth
+    local handleWidth = math.max(20, scrollbarWidth * ((self.width - self.scrollbarWidth) / (self.maxLineWidth + 2 * self.padding)))
+    
+    local newHandleX = relativeX - self.horizontalScrollbarDragOffset
+    newHandleX = math.max(0, math.min(newHandleX, scrollbarWidth - handleWidth))
+    
+    local newScrollX = (newHandleX / (scrollbarWidth - handleWidth)) * (self.maxLineWidth - self.width + self.scrollbarWidth + 2 * self.padding)
+    self.scrollX = math.max(0, math.min(math.floor(newScrollX), self.maxLineWidth - self.width + self.scrollbarWidth + 2 * self.padding))
+    self:updateScroll()
+end
+
+function TextEditor:isPositionInSelection(x, y)
+    if not self:hasSelection() then
+        return false
+    end
+
+    local start, endSel = self:getSelectionRange()
+    
+    if y < start.y or y > endSel.y then
+        return false
+    elseif y == start.y and y == endSel.y then
+        return x >= start.x and x < endSel.x
+    elseif y == start.y then
+        return x >= start.x
+    elseif y == endSel.y then
+        return x < endSel.x
+    else
+        return true
+    end
+end
+
+function TextEditor:ensureCursorVisible()
+    -- Vertical scrolling
+    if self.cursorY <= self.scrollY then
+        self.scrollY = self.cursorY - 1
+    elseif self.cursorY > self.scrollY + self.visibleLines then
+        self.scrollY = self.cursorY - self.visibleLines
+    end
+
+    -- Horizontal scrolling
+    local cursorXPixels = self.font:getWidth(utf8_sub(self.lines[self.cursorY] or "", 1, self.cursorX - 1))
+    local visibleWidth = self.width - self.scrollbarWidth - 2 * self.padding
+
+    if cursorXPixels < self.scrollX then
+        self.scrollX = cursorXPixels
+    elseif cursorXPixels > self.scrollX + visibleWidth then
+        self.scrollX = cursorXPixels - visibleWidth
+    end
+
+    self:updateScroll()
 end
 
 return TextEditor

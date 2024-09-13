@@ -373,10 +373,10 @@ local function print_event_info(self, event)
 end
 
 local function handlePositionalInput(self, event)
-    if event.type ~= EventType.MOUSE_MOVED then
-        self.context.debug_print_log("--- EVENT COMING ---")
-        print_event_info(self,event)
-    end
+    -- if event.type ~= EventType.MOUSE_MOVED then
+    --     self.context.debug_print_log("--- EVENT COMING ---")
+    --     print_event_info(self,event)
+    -- end
 
     if (not self:isPointInside(event.data.x, event.data.y)) or self.visible == false then
         --self.context.debug_print_log("==== not point inside:" .. self.tag)
@@ -394,11 +394,6 @@ local function handlePositionalInput(self, event)
     for i = #self.children, 1, -1 do
         local child = self.children[i]
         if child:isPointInside(localX, localY) and child.visible == true then
-
-            if event.type == EventType.MOUSE_PRESSED then
-                print("==== mouse pressed:" .. self.tag)
-            end
-
 
             local localData = {}
             for k, v in pairs(event.data) do
