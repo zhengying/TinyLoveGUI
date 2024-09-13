@@ -25,6 +25,7 @@ local InputEventUtils = require(cwd .. "InputEventUtils")
 local EventType = InputEventUtils.EventType  
 local InputEvent = InputEventUtils.InputEvent
 local TooltipsMixin = require(cwd .. "TooltipsMixin")
+local GUIContext = require(cwd .. "GUIContext")
 
 -- Slider
 local Slider = GUIElement:extend()
@@ -100,6 +101,16 @@ function Slider:draw()
     love.graphics.circle("fill", knobX, self.height / 2, 8)
     
     love.graphics.pop()
+end
+
+function Slider:onAddToContext()
+    self.context:registerLocalEvent(GUIContext.LocalEvents.HIGHLIGHT_CHANGED,self,self.onHighlightChanged,nil)
+end
+
+function Slider:onHighlightChanged(element)
+    if element ~= self then
+        self.dragging = false
+    end
 end
 
 function Slider:onFocusGained()
