@@ -58,7 +58,6 @@ local function createGUI(context)
                                                     {width=FlowLayout.SizeMode.FILL_PARENT,
                                                     height=FlowLayout.SizeMode.FILL_PARENT},
                                                     FlowLayout.CrossAlignment.CENTER, 10)
-    rowLayout.DEBUG_DRAW = true
     context:addChild(rowLayout)
     -- rowLayout:addChild(simpleButton)
     -- rowLayout:addChild(simpleButton2)
@@ -151,7 +150,6 @@ local function createGUI(context)
     myProgressBar = ProgressBar(0, 0, 200, 50, 0, 100)
     myProgressBar.tag = "myProgressBar"
     rowLayout:addChild(myProgressBar)
-    treeView.DEBUG_DRAW = true
 
     --rowLayout:addChild(treeView,1,1,'auto')
 

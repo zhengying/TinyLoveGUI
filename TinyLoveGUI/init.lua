@@ -19,6 +19,10 @@
     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
     SOFTWARE.
 --]]
+
+
+TINYLOVEGUI_DEBUG = false
+
 local cwd   = (...):gsub('%.init$', '') .. "."
 
 local GUIElement = require(cwd .. "GUIElement")

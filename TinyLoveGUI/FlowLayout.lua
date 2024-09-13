@@ -59,6 +59,9 @@ FlowLayout.SizeMode = {
 ---@param padding? table|number
 ---@param alignment? FlowLayout.Alignment
 ---@param direction? FlowLayout.Direction
+---@param sizeMode? FlowLayout.SizeMode
+---@param crossAlignment? FlowLayout.CrossAlignment
+---@param gap? number   
 function FlowLayout:init(x, y, width, height, bgcolor, padding, alignment, direction, sizeMode, crossAlignment, gap)
     FlowLayout.super.init(self, x, y, width, height, bgcolor)
     if type(padding) == 'number' then
@@ -537,10 +540,6 @@ function FlowLayout:updateLayout()
         local crossAvailable = crossEnd - crossStart
 
         if self.crossAlignment == FlowLayout.CrossAlignment.STRETCH then
-            print("Stretching child's " .. crossDim .. " from " .. child[crossDim], "to", crossAvailable)
-            if child.tag == 'Button' then
-                print('hello')
-            end
             child[crossDim] = crossAvailable
         elseif self.crossAlignment == FlowLayout.CrossAlignment.CENTER then
             child[crossAxis] = crossStart + (crossAvailable - child[crossDim]) / 2
@@ -567,6 +566,13 @@ function FlowLayout:updateLayout()
     end
 
     self:updateSizeMode()
+
+    for _, child in ipairs(self.children) do
+        if child.layoutComplete then
+            child:layoutComplete()
+        end
+    end
+
 end
 
 -- function FlowLayout:draw()

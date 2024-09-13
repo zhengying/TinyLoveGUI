@@ -47,7 +47,7 @@ function TextEditor:init(x, y, width, height, options)
     self:setFocusable(true)
     
     self.maxLines = options.maxLines or math.huge
-    self.lineHeight = self.font:getHeight() * 1.2
+    self.lineHeight = self.font:getHeight() * 1.1
 
     self.selectionStart = nil
     self.selectionEnd = nil
@@ -207,7 +207,18 @@ function TextEditor:draw()
     
     -- Set up scissor to clip text
     local globalX, globalY = self:getGlobalPosition()
-    love.graphics.intersectScissor(globalX, globalY, self.width - self.scrollbarWidth, self.height - self.horizontalScrollbarHeight)
+    
+    local text_area_width = self.width - self.scrollbarWidth
+    local text_area_height = self.height - self.horizontalScrollbarHeight
+
+    if text_area_width < 0 then
+        text_area_width = 50
+    end
+    if text_area_height < 0 then
+        text_area_height = 50
+    end 
+
+    love.graphics.intersectScissor(globalX, globalY, text_area_width, text_area_height)
     
     -- Draw text
     love.graphics.setColor(unpack(self.textColor))

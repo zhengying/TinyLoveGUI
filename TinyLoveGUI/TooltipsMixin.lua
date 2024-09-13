@@ -33,7 +33,7 @@ end
 
 function TooltipsMixin:onHighlightChanged(element)
 
-    print('onHighlightChanged:'.. (element and element.tag or 'null'))
+    -- print('onHighlightChanged:'.. (element and element.tag or 'null'))
 
     if not self.tooltips_enabled then
         return

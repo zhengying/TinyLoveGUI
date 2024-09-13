@@ -41,6 +41,8 @@ GUIContext.DEBUG_TYPE = {
     ERROR = 3,  -- error    
 }
 function GUIContext.debug_print(type, ...)
+    if not TINYLOVEGUI_DEBUG then return end
+
     if type == GUIContext.DEBUG_TYPE.LOG then
         print('LOG: ' .. ...)
     elseif type == GUIContext.DEBUG_TYPE.WARN then
@@ -295,7 +297,6 @@ function GUIContext:handleHighlightClear(event)
         if self.highlightElement then
             local localX, localY = event.data.x, event.data.y --self.highlightElement:toLocalCoordinates(event.data.x, event.data.y)
             if not self.highlightElement:isPointInside(localX, localY) then
-                print('highlightElement: ' .. self.highlightElement.tag  .. 'state:' ..self.highlightElement.state .. ' is not point inside')
                 if self.highlightElement.state == GUIContext.State.HOVER or self.highlightElement.state == GUIContext.State.PRESSED then
                     if self.highlightElement.onPointerLeave then
                         self.highlightElement:onPointerLeave()

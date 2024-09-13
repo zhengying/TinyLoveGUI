@@ -3,7 +3,6 @@
 local Object = {}
 Object.__index = Object
 
--- local DEBUG_DRAW = true
 
 
 function Object:init() end

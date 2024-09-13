@@ -78,13 +78,11 @@ function GUIElement:init(x, y, width, height, bgcolor)
         bgcolor = {r=bgcolor[1],g=bgcolor[2],b=bgcolor[3]}
     end
     self.bgcolor = bgcolor or {r=0.5,g=0.5,b=0.5}
-    if self.bgcolor.b > 0 then  
-        print("ddd")
-    end
     self.state = GUIContext.State.NORMAL
     self.tag = "GUIElement"
     self.zIndex = GUIContext.ZIndexGroup.NORMAL
-    self.DEBUG_DRAW = false
+
+    self.DEBUG_DRAW = TINYLOVEGUI_DEBUG
     self.context = nil
     -- focus
     self.focusable = true
@@ -151,6 +149,8 @@ function GUIElement:resize(width, height)
             -- Pass the available child width and height, excluding margin
             child:onParentResize(childWidth, childHeight)
         end
+        -- Check child bounds after resize
+        self:checkChildBounds(child)
     end
     
     -- Call onResize if it exists
@@ -186,28 +186,28 @@ end
 --     self.context:setFocus(nil)
 -- end
 
-function GUIElement:getAllElementsAtPosition(x, y)
-    local elements = {}
+-- function GUIElement:getAllElementsAtPosition(x, y)
+--     local elements = {}
     
-    -- Check if the point is within this element's bounds
-    if self.tag == "FlowLayout" then
-        print("FlowLayout:getAllElementsAtPosition", x, y)
-    end
-    if self:containsPoint(x, y) and self.visible then
-        table.insert(elements, self)
-        self:sortChildren()
-        -- Check children
-        for i = #self.children, 1, -1 do
-            local child = self.children[i]
-            local childElements = child:getAllElementsAtPosition(x - self.x, y - self.y)
-            for _, element in ipairs(childElements) do
-                table.insert(elements, element)
-            end
-        end
-    end
+--     -- Check if the point is within this element's bounds
+--     if self.tag == "FlowLayout" then
+--         print("FlowLayout:getAllElementsAtPosition", x, y)
+--     end
+--     if self:containsPoint(x, y) and self.visible then
+--         table.insert(elements, self)
+--         self:sortChildren()
+--         -- Check children
+--         for i = #self.children, 1, -1 do
+--             local child = self.children[i]
+--             local childElements = child:getAllElementsAtPosition(x - self.x, y - self.y)
+--             for _, element in ipairs(childElements) do
+--                 table.insert(elements, element)
+--             end
+--         end
+--     end
     
-    return elements
-end
+--     return elements
+-- end
 
 function GUIElement:containsPoint(x, y)
     return self:isPointInside(x, y)
@@ -255,6 +255,20 @@ function GUIElement:addChild(child)
         child:onAddToContext(self.context)
     end
     self:sortChildren()
+
+    -- Check if child extends beyond parent boundaries
+    self:checkChildBounds(child)
+end
+
+function GUIElement:checkChildBounds(child)
+    local childRight = child.x + child.width
+    local childBottom = child.y + child.height
+
+    if child.x < 0 or child.y < 0 or childRight > self.width or childBottom > self.height then
+        self.context.debug_print_warn(string.format("Child '%s' (%.2f, %.2f, %.2f, %.2f) extends beyond parent '%s' (0, 0, %.2f, %.2f)",
+            child.tag, child.x, child.y, child.width, child.height,
+            self.tag, self.width, self.height))
+    end
 end
 
 function GUIElement:_stateChanged(new_state)
@@ -262,7 +276,7 @@ function GUIElement:_stateChanged(new_state)
         GUIContext.debug_print_log("! new state is nil")
     end
     if self.state ~= new_state then
-       --GUIContext.debug_print_log("tag:"..self.tag .. " state changed:" .. self.state .. '~>' .. new_state)
+       GUIContext.debug_print_log("tag:"..self.tag .. " state changed:" .. self.state .. '~>' .. new_state)
     end
 
     self.state = new_state

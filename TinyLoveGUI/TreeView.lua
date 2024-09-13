@@ -272,7 +272,7 @@ end
 local function handleMove(self, x, y, dx, dy)
     local local_x, local_y = x - self.x, y - self.y
 
-    self.context.debug_print_log("x:".. tostring(x).. " y:" .. tostring(y))
+    --self.context.debug_print_log("x:".. tostring(x).. " y:" .. tostring(y))
     if not (self.isDraggingVerticalScrollbar or self.isDraggingHorizontalScrollbar) then
         -- Adjust localY by the vertical scroll offset
         local_y = local_y + self.offsetY
@@ -415,12 +415,10 @@ end
 
 function TreeView:onFocusGained()
     -- Override this method in subclasses to handle gaining focus
-    print("TreeView:onFocusGained")
 end
 
 function TreeView:onFocusLost()
     -- Override this method in subclasses to handle losing focus
-    print("TreeView:onFocusLost")
     self.isDraggingVerticalScrollbar = false
     self.isDraggingHorizontalScrollbar = false
 end

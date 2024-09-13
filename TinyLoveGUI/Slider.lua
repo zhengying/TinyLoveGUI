@@ -115,12 +115,10 @@ end
 
 function Slider:onFocusGained()
     -- Override this method in subclasses to handle gaining focus
-    print("TreeView:onFocusGained")
 end
 
 function Slider:onFocusLost()
     -- Override this method in subclasses to handle losing focus
-    print("TreeView:onFocusLost")
     self.dragging = false
 end
 
