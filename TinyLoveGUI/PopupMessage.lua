@@ -77,9 +77,9 @@ function PopupMessage.show(context, message, duration, width, height)
     local y = screenHeight - height - 20  -- 20 pixels from the bottom
 
     local popup = PopupMessage({x=x, y=y, width=width, height=height, message=message, duration=duration})
-    popup = Utils.observable(popup, "timeLeft", function(key, oldValue, newValue)
-        print("width changed to", newValue)
-    end)
+    -- popup = Utils.observable(popup, "timeLeft", function(key, oldValue, newValue)
+    --     print("width changed to", newValue)
+    -- end)
     context:addChild(popup)
 
     return popup

@@ -125,7 +125,7 @@ local function handlePress(self, x, y, button)
             if local_y < self.height then
                 self.isOpen = not self.isOpen
                 if self.isOpen then
-                    self:setZIndex(GUIContext.ZIndexGroup.POPUP)
+                    self:setZIndex(GUIContext.ZIndexGroup.POPUP_LOCAL)
                 else
                     self:setZIndex(GUIContext.ZIndexGroup.NORMAL)
                 end

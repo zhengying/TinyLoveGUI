@@ -14,7 +14,9 @@ GUIContext.ZIndexGroupNames = {
     SHADOW = 'SHADOW',
     NORMAL = 'NORMAL',
     MODAL_WINDOW = "MODAL_WINDOW",
-    POPUP = 'POPUP'  -- Added for elements like dropdowns that should be on top
+    POPUP = 'POPUP',
+    GLOBAL_MODAL_WINDOW = "GLOBAL_MODAL_WINDOW",
+    GLOBAL_POPUP = "GLOBAL_POPUP"  -- Added for elements like dropdowns that should be on top 
 }
 
 GUIContext.ZIndexGroup = {
@@ -22,10 +24,11 @@ GUIContext.ZIndexGroup = {
     SHADOW = 10,
     NORMAL = 500,
     MODAL_WINDOW = 1000,
+    POPUP_LOCAL = 1400,
     POPUP = 1500,  -- Added for elements like dropdowns that should be on top 
     -- GLOBAL position base on screen
-    GLOBAL_MODAL_WINDOW = 1000,
-    GLOBAL_POPUP = 1500  -- Added for elements like dropdowns that should be on top 
+    GLOBAL_MODAL_WINDOW = 2000,
+    GLOBAL_POPUP = 2500  -- Added for elements like dropdowns that should be on top 
 }
 
 GUIContext.State = {

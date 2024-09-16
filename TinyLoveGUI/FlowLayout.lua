@@ -244,18 +244,20 @@ function FlowLayout:updateLayout()
 
     -- First pass: separate fixed and flex children, calculate totals
     for _, child in ipairs(self.children) do
-        if child.zIndex == GUIContext.ZIndexGroup.POPUP then
-            return
-        end
+        repeat -- its just simulate continue
+            if child.zIndex == GUIContext.ZIndexGroup.POPUP then
+                break
+            end
 
-        local props = self.childrenProps[child]
-        if props.flexGrow and props.flexGrow > 0 then
-            totalFlexGrow = totalFlexGrow + props.flexGrow
-            totalFlexShrink = totalFlexShrink + (props.flexShrink or 1)
-            table.insert(flexChildren, child)
-        else
-            totalFixedSize = totalFixedSize + child[mainDim]
-        end
+            local props = self.childrenProps[child]
+            if props.flexGrow and props.flexGrow > 0 then
+                totalFlexGrow = totalFlexGrow + props.flexGrow
+                totalFlexShrink = totalFlexShrink + (props.flexShrink or 1)
+                table.insert(flexChildren, child)
+            else
+                totalFixedSize = totalFixedSize + child[mainDim]
+            end
+        until true
     end
 
     local freeSpace = math.max(availableSpace - totalFixedSize, 0)
@@ -280,49 +282,52 @@ function FlowLayout:updateLayout()
 
     -- Second pass: distribute space and position children
     for _, child in ipairs(self.children) do
-        if child.tag == "PopupWindow" then
-            print("==== popup window:" .. child.tag)
-        end
-        local props = self.childrenProps[child]
-        local childSize = child[mainDim]
+        
+        repeat
+            if child.zIndex == GUIContext.ZIndexGroup.POPUP then
+                break
+            end
+            local props = self.childrenProps[child]
+            local childSize = child[mainDim]
 
-        if props.flexGrow and props.flexGrow > 0 then
-            local flexSpace = freeSpace * (props.flexGrow / scale)
-            childSize = math.max(flexSpace, 1) -- Ensure minimum size of 1
-        end
+            if props.flexGrow and props.flexGrow > 0 then
+                local flexSpace = freeSpace * (props.flexGrow / scale)
+                childSize = math.max(flexSpace, 1) -- Ensure minimum size of 1
+            end
 
-        child[mainDim] = childSize
-        child[mainAxis] = currentPos
-        currentPos = currentPos + childSize + spacing
+            child[mainDim] = childSize
+            child[mainAxis] = currentPos
+            currentPos = currentPos + childSize + spacing
 
-        -- Handle cross-axis alignment
-        local crossStart = self.padding[isVertical and "left" or "top"]
-        local crossEnd = self.owner[crossDim] - self.padding[isVertical and "right" or "bottom"]
-        local crossAvailable = crossEnd - crossStart
+            -- Handle cross-axis alignment
+            local crossStart = self.padding[isVertical and "left" or "top"]
+            local crossEnd = self.owner[crossDim] - self.padding[isVertical and "right" or "bottom"]
+            local crossAvailable = crossEnd - crossStart
 
-        if self.crossAlignment == FlowLayout.CrossAlignment.STRETCH then
-            child[crossDim] = crossAvailable
-        elseif self.crossAlignment == FlowLayout.CrossAlignment.CENTER then
-            child[crossAxis] = crossStart + (crossAvailable - child[crossDim]) / 2
-        elseif self.crossAlignment == FlowLayout.CrossAlignment.END then
-            child[crossAxis] = crossEnd - child[crossDim]
-        else -- START alignment
-            child[crossAxis] = crossStart
-        end
+            if self.crossAlignment == FlowLayout.CrossAlignment.STRETCH then
+                child[crossDim] = crossAvailable
+            elseif self.crossAlignment == FlowLayout.CrossAlignment.CENTER then
+                child[crossAxis] = crossStart + (crossAvailable - child[crossDim]) / 2
+            elseif self.crossAlignment == FlowLayout.CrossAlignment.END then
+                child[crossAxis] = crossEnd - child[crossDim]
+            else -- START alignment
+                child[crossAxis] = crossStart
+            end
 
-        maxCrossSize = math.max(maxCrossSize, child[crossDim])
+            maxCrossSize = math.max(maxCrossSize, child[crossDim])
 
-        local childWidth, childHeight = child:getSize()
+            local childWidth, childHeight = child:getSize()
 
-        print("  child tag: " .. child.tag)
-        print("  After  - x: " .. child.x .. ", y: " .. child.y)
-        print("  Size   - width: " .. childWidth .. ", height: " .. childHeight)
-        print("  Gap: " .. self.gap)
-        print("------------------")
+            print("  child tag: " .. child.tag)
+            print("  After  - x: " .. child.x .. ", y: " .. child.y)
+            print("  Size   - width: " .. childWidth .. ", height: " .. childHeight)
+            print("  Gap: " .. self.gap)
+            print("------------------")
 
-        if child.layout then
-            child:updateLayout()
-        end
+            if child.layout then
+                child:updateLayout()
+            end
+        until true
     end
 
     -- -- Update measured sizes

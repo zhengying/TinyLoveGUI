@@ -232,7 +232,7 @@ local function createGUI(context)
    contextMenu.root:addChild(helpMenu)
 
    -- Add the context menu to mainView
-   --context:addChild(contextMenu)
+   context:addChild(contextMenu)
 
 
    --right-click handler to mainView
@@ -273,7 +273,7 @@ local gui
 local window_width, widown_height = 1024, 768
 function love.load()
     
-    love.window.setMode(window_width, widown_height,{highdpi=true})
+    love.window.setMode(window_width, widown_height,{highdpi=true, resizable = true})
 
     local rowLayout = FlowLayout({
         x=0, y=0, width=nil, height=nil, 

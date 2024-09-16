@@ -3,7 +3,7 @@ local GUIElement = require(cwd .. "GUIElement")
 local InputEventUtils = require(cwd .. "InputEventUtils")
 local EventType = InputEventUtils.EventType
 local Object = require(cwd .. "Object")
-
+local GUIContext = require(cwd .. "GUIContext")
 local PopupMenu = GUIElement:extend()
 
 local MenuItem = Object:extend()
@@ -60,6 +60,7 @@ function PopupMenu:init(options)
         --submenuIndicator = "▶"
         submenuIndicator = ">"
     }
+    self.zIndex = GUIContext.ZIndexGroup.POPUP
 end
 
 function PopupMenu:setStyle(style)

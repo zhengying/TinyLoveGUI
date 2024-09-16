@@ -1,5 +1,13 @@
 local Utils = {}
 
+
+--- usage:
+---     local popup = PopupMessage({x=x, y=y, width=width, height=height, message=message, duration=duration})
+---     popup = Utils.observable(popup, "timeLeft", function(key, oldValue, newValue)
+---         print("width changed to", newValue)
+---     end)
+---     context:addChild(popup)
+
 function Utils.makeObservable(instance, options)
     options = options or {}
     local proxy = {}
