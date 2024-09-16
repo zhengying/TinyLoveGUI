@@ -13,8 +13,8 @@ end
 
 function TooltipsMixin:TooltipsMixin_init(options)
     assert(self:is(GUIElement), "TooltipsMixin requires GUIElement as base")
-    self.tooltips_enabled = self.options.tooltips_enabled or false
-    self.tooltips_text = self.options.tooltips_text or ""
+    self.tooltips_enabled = options.tooltips_enabled or false
+    self.tooltips_text = options.tooltips_text or ""
 
     self.tooltips_showed = false
     if self.onAddToContext then

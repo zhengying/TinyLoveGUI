@@ -28,10 +28,9 @@ end
 utf8.sub = utf8_sub
 local TextEditor = GUIElement:extend()
 
-function TextEditor:init(x, y, width, height, options)
-    TextEditor.super.init(self, x, y, width, height)
+function TextEditor:init(options) 
+    TextEditor.super.init(self, options)
     self.tag = "TextEditor"
-    options = options or {}
     self.text = options.text or ""
     self.font = options.font or love.graphics.getFont()
     self.textColor = options.textColor or {1, 1, 1, 1}

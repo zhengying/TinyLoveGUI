@@ -6,6 +6,7 @@ local InputEventUtils = require(cwd .. "InputEventUtils")
 local GUIContext = Object:extend()
 GUIContext.EventType = InputEventUtils.EventType
 local AnimateTimer = require(cwd .. "AnimateTimer")
+local XYLayout = require(cwd .. "XYLayout")
 
 
 
@@ -17,10 +18,14 @@ GUIContext.ZIndexGroupNames = {
 }
 
 GUIContext.ZIndexGroup = {
+    -- position base on parent
     SHADOW = 10,
     NORMAL = 500,
     MODAL_WINDOW = 1000,
-    POPUP = 1500  -- Added for elements like dropdowns that should be on top 
+    POPUP = 1500,  -- Added for elements like dropdowns that should be on top 
+    -- GLOBAL position base on screen
+    GLOBAL_MODAL_WINDOW = 1000,
+    GLOBAL_POPUP = 1500  -- Added for elements like dropdowns that should be on top 
 }
 
 GUIContext.State = {
@@ -81,25 +86,25 @@ function GUIContext:addChild(element)
     self.root:addChild(element)
 end
 
-function GUIContext:init(x, y, width, height)
-    GUIContext.super.init(self, x, y, width, height)
+function GUIContext:init(options)
+    GUIContext.super.init(self, options)
     self.focusedElement = nil
     self.highlightElement = nil
     self.modalStack = {}
     self.root = nil
-    self.pointerX = 0
+    self.pointerX = 0   
     self.pointerY = 0
     self.timer = AnimateTimer()
     self.event_listeners = {}
     self.cid_current = 0
-    
-
     local w, h =  love.window.getMode()
-    self.width = width or w
-    self.height = height or h
+    self.width = options.width or w
+    self.height = options.height or h
     local GUIElement = require(cwd .. "GUIElement")
-    local mainView = GUIElement(0, 0, width, height)
+    local mainView = GUIElement({x=0, y=0, width=self.width, height=self.height})
+
     self:setRoot(mainView)
+    --mainView:setLayout(options.layout or XYLayout())
 end
 
 function GUIContext:nextCID()
@@ -184,6 +189,11 @@ end
 function GUIContext:setRoot(rootElement)
     self.root = rootElement
     rootElement:setContext(self)
+end
+
+
+function GUIContext:setLayout(layout)
+    self.root:setLayout(layout)
 end
 
 function GUIContext:setFocus(element)

@@ -29,13 +29,13 @@ local GUIContext = require(cwd .. "GUIContext")
 
 -- Slider
 local Slider = GUIElement:extend()
-Slider:implement(TooltipsMixin)
+Slider:implement(TooltipsMixin) 
 
-function Slider:init(x, y, width, height, min, max, value)
-    Slider.super.init(self, x, y, width, height)
-    self.min = min or 0
-    self.max = max or 100
-    self.value = value or self.min
+function Slider:init(options)
+    Slider.super.init(self, options)
+    self.min = options.min or 0
+    self.max = options.max or 100
+    self.value = options.value or self.min
     self.onChange = function(value) end
     self.dragging = false
     self.tag = 'Slider'

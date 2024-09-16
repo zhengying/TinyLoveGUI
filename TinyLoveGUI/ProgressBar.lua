@@ -25,13 +25,13 @@ local GUIElement = require(cwd .. "GUIElement")
 -- ProgressBar: A control for displaying progress
 local ProgressBar = GUIElement:extend()
 
-function ProgressBar:init(x, y, width, height, value, max, color)
-    ProgressBar.super.init(self, x, y, width, height)
-    self.value = value or 0
-    self.max = max or 100
-    self.color = color or {0.2, 0.6, 1} -- Default to a light blue color
-    self.backgroundColor = {0.8, 0.8, 0.8} -- Light gray background
-    self.borderColor = {0.5, 0.5, 0.5} -- Medium gray border
+function ProgressBar:init(options)
+    ProgressBar.super.init(self, options)
+    self.value = options.value or 0
+    self.max = options.max or 100
+    self.color = options.color or {0.2, 0.6, 1} -- Default to a light blue color
+    self.backgroundColor = options.backgroundColor or {0.8, 0.8, 0.8} -- Light gray background
+    self.borderColor = options.borderColor or {0.5, 0.5, 0.5} -- Medium gray border
 end
 
 function ProgressBar:draw()

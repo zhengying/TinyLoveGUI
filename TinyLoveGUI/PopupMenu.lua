@@ -34,8 +34,8 @@ function MenuItem:addChild(child)
 end
 
 -- PopupMenu implementation
-function PopupMenu:init(x, y, width, height)
-    PopupMenu.super.init(self, x, y, width, height)
+function PopupMenu:init(options)
+    PopupMenu.super.init(self, options)
     self.root = MenuItem("Root", {})
     self.root:setAsGroup(true)
     self.selectedNode = nil

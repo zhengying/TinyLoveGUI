@@ -22,13 +22,11 @@ local ModalWindow = TinyLoveGUI.ModalWindow
 local GUIContext = TinyLoveGUI.GUIContext
 local TextEditor = TinyLoveGUI.TextEditor
 
-
 local myProgressBar
 
-
-
 local function createGUI(context)
-    local simpleButton = Button(0, 0, 200, 50, {
+    local simpleButton = Button({
+        x=0, y=0, width=200, height=50, 
         text = "Click me!",
         normalColor = {0.2, 0.6, 0.8, 1},
         hoverColor = {0.3, 0.7, 0.9, 1},
@@ -40,7 +38,8 @@ local function createGUI(context)
             myProgressBar.value = math.min(myProgressBar.value + 5,100)
         end
     })
-    local simpleButton2 = Button(0, 0, 200, 50, {
+        local simpleButton2 = Button({
+        x=0, y=0, width=200, height=50, 
         text = "Cancel",
         normalColor = {0.2, 0.6, 0.8, 1},
         hoverColor = {0.3, 0.7, 0.9, 1},
@@ -53,24 +52,20 @@ local function createGUI(context)
         end
     })
     -- (x, y, width, height, bgcolor, padding, alignment, direction, sizeMode, crossAlignment, gap)
-    local rowLayout = FlowLayout(0, 0, nil, nil, {r=0.1,g=0.1,b=0.1}, 5, FlowLayout.Alignment.START, 
-                                                    FlowLayout.Direction.VERTICAL,
-                                                    {width=FlowLayout.SizeMode.FILL_PARENT,
-                                                    height=FlowLayout.SizeMode.FILL_PARENT},
-                                                    FlowLayout.CrossAlignment.CENTER, 10)
-    context:addChild(rowLayout)
     -- rowLayout:addChild(simpleButton)
     -- rowLayout:addChild(simpleButton2)
 
 
 
-    local textField = TextField(0,0,80,30,{
+    local textField = TextField({
+        x=0, y=0, width=80, height=30,
         maxLength = 16,
         inputType = "number"
     })
 
 
-    local textField1 = TextField(0,0,80,30,{
+    local textField1 = TextField({
+        x=0, y=0, width=80, height=30,
         maxLength = 10,
         customValidate = function(text)
             -- Example: Only allow even numbers
@@ -81,8 +76,8 @@ local function createGUI(context)
 
 
     textField.text = "1"
-    rowLayout:addChild(textField)
-    rowLayout:addChild(textField1)
+    context:addChild(textField)
+    context:addChild(textField1)
 
     local groupIcon_fold = love.graphics.newImage("assets/images/folder.png")
     local groupIcon_open = love.graphics.newImage("assets/images/openfolder.png")
@@ -93,7 +88,7 @@ local function createGUI(context)
     TreeView:setDefaultGroupIcon(groupIcon_fold, groupIcon_open)
     TreeView:setDefaultLeafIcon(leafIcon)
 
-    local treeView = TreeView(0, 0, 200, 150)
+    local treeView = TreeView({x=0, y=0, width=200, height=150})
 
     -- Adding nodes to the tree
     local node1 = TreeNode("Node 1")
@@ -138,31 +133,43 @@ local function createGUI(context)
     node3:addChild(node17)
 
     --Add a slider
-    local slider = Slider(0, 0, 600, 30, 0, 100, sliderValue)
-    slider.tag = "slider"
-    slider.onChange = function(value)
-        sliderValue = value
-    end
+    local slider = Slider({
+        x=0, y=0, width=600, height=30, 
+        min=0, max=100, 
+        value=0,
+        onChange = function(value)
+            sliderValue = value
+        end
+    })
     
-    rowLayout:addChild(slider)
+    context:addChild(slider)
 
 
-    myProgressBar = ProgressBar(0, 0, 200, 50, 0, 100)
+    myProgressBar = ProgressBar({
+        x=0, y=0, width=200, height=50, 
+        min=0, max=100, 
+        value=0,
+        onChange = function(value)
+            sliderValue = value
+        end
+    })
     myProgressBar.tag = "myProgressBar"
-    rowLayout:addChild(myProgressBar)
+    context:addChild(myProgressBar)
 
     --rowLayout:addChild(treeView,1,1,'auto')
 
-    local optionSelect = OptionSelect(20, 150, 100, 30, {"Option 1", "Option 2", "Option 3", "Option 4", "Option 5", "Option 6","Option 1", "Option 2", "Option 3", "Option 4", "Option 5", "Option 6"})
-    optionSelect.tag = "optionSelect"
-    optionSelect.tooltips_enabled = true
-    optionSelect.tooltips_text = "this is an OptionSelect, just test for long text, here we go"
-    optionSelect.onChange = function(selectedOption, selectedIndex)
-    print("Selected: " .. selectedOption .. " at index " .. selectedIndex)
-    end
-    rowLayout:addChild(optionSelect)
+    local optionSelect = OptionSelect({
+        x=0, y=0, width=100, height=30, 
+        options={"Option 1", "Option 2", "Option 3", "Option 4", "Option 5", "Option 6","Option 1", "Option 2", "Option 3", "Option 4", "Option 5", "Option 6"},
+        tooltips_enabled = true,
+        tooltips_text = "this is an OptionSelect, just test for long text, here we go",
+        onChange = function(selectedOption, selectedIndex)
+            print("Selected: " .. selectedOption .. " at index " .. selectedIndex)
+        end
+    })
+    context:addChild(optionSelect)
 
-    rowLayout:addChild(treeView)
+    context:addChild(treeView)
 
     local menu = PopupMenu({
         {text = "Copy", action = function() print("Copy") end},
@@ -174,7 +181,9 @@ local function createGUI(context)
     })
     -- In your main update/draw loop:
 
-    local panel = ModalWindow(330, 300, 600, 200, context, {
+    local panel = ModalWindow({
+        x=330, y=300, width=600, height=200, 
+        context = context, 
         backgroundColor = {0.2, 0.2, 0.2, 1},
         borderColor = {0.5, 0.5, 0.5, 1},
         borderWidth = 1,
@@ -184,7 +193,13 @@ local function createGUI(context)
         -- context:addChild(panel)
 
    -- Create a popup menu using TreeView
-   local contextMenu = PopupMenu(0, 0, 200, 300)
+   local contextMenu = PopupMenu({
+        x=0, y=0, width=200, height=300, 
+        context = context, 
+        backgroundColor = {0.2, 0.2, 0.2, 1},
+        borderColor = {0.5, 0.5, 0.5, 1},
+        borderWidth = 1,
+        })
    contextMenu:hide()  -- Initially hidden
 
    -- Create menu items
@@ -217,7 +232,7 @@ local function createGUI(context)
    contextMenu.root:addChild(helpMenu)
 
    -- Add the context menu to mainView
-   context:addChild(contextMenu)
+   --context:addChild(contextMenu)
 
 
    --right-click handler to mainView
@@ -234,18 +249,18 @@ local function createGUI(context)
    end)
 
 
-   rowLayout:addChild(simpleButton)
-   rowLayout:addChild(simpleButton2)
+   context:addChild(simpleButton)
+   context:addChild(simpleButton2)
 
 
-   local textEditor = TextEditor(0, 0, 200, 100)
-    textEditor:setText("Select a file to edit")
+   local textEditor = TextEditor({x=0, y=0, width=200, height=100, text = "Select a file to edit"})
+   
 
 
     --Add components to layouts
-    rowLayout:addChild(textEditor,0,1,100)
+    context:addChild(textEditor,0,1,100)
 
-
+    context.root:updateLayout()
 
 
    return context
@@ -259,9 +274,21 @@ local window_width, widown_height = 1024, 768
 function love.load()
     
     love.window.setMode(window_width, widown_height,{highdpi=true})
+
+    local rowLayout = FlowLayout({
+        x=0, y=0, width=nil, height=nil, 
+        bgcolor={r=0.1,g=0.1,b=0.1}, 
+        padding={left=25, right=5, top=15, bottom=5}, 
+        alignment=FlowLayout.Alignment.START, 
+        direction=FlowLayout.Direction.VERTICAL,
+        crossAlignment=FlowLayout.CrossAlignment.START, 
+        gap=8
+    })
     
-    local context = GUIContext(0, 0, window_width, widown_height)
+    local context = GUIContext({x = 0, y = 0, width = window_width, height = widown_height}) 
+    context:setLayout(rowLayout)
     gui = createGUI(context)
+
 end
 
 function love.update(dt)

@@ -83,8 +83,8 @@ TreeView.defaultFoldIcon = nil
 TreeView.defaultExpandedIcon = nil
 TreeView.defaultLeafIcon = nil
 
-function TreeView:init(x, y, width, height)
-    TreeView.super.init(self, x, y, width, height)
+function TreeView:init(options)
+    TreeView.super.init(self, options)
     self.root = TreeNode("Root", {})
     self.root:setAsGroup(true)
     self.selectedNode = nil

@@ -28,13 +28,13 @@ local GUIContext = require(cwd .. "GUIContext")
 
 local ScrollView = GUIElement:extend()
 
-function ScrollView:init(x, y, width, height)
-    ScrollView.super.init(self, x, y, width, height)
-    self.offsetX = 0
-    self.offsetY = 0
-    self.contentWidth = width
-    self.contentHeight = height
-    self.scrollbarWidth = 10
+function ScrollView:init(options)
+    ScrollView.super.init(self, options)
+    self.offsetX = options.offsetX or 0
+    self.offsetY = options.offsetY or 0
+    self.contentWidth = options.width
+    self.contentHeight = options.height
+    self.scrollbarWidth = options.scrollbarWidth or 10
     self.isDraggingVerticalScrollbar = false
     self.isDraggingHorizontalScrollbar = false
     self.scrollbarGrabOffset = 0
@@ -73,7 +73,7 @@ function ScrollView:draw()
         love.graphics.push()
         love.graphics.translate(-self.offsetX, -self.offsetY)
         self:onDraw()
-        for _, child in ipairs(self.children) do
+        for _, child in ipairs(self:getChildren()) do
             child:draw()
         end 
         love.graphics.pop()

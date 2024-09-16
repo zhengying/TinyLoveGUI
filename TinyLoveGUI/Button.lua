@@ -52,27 +52,27 @@ Button:implement(TooltipsMixin)
 ---@param width number
 ---@param height number
 ---@param options? ButtonOptions
-function Button:init(x, y, width, height, options)
-    Button.super.init(self, x, y, width, height)
-    self.options = options or {}
+function Button:init(options)
+    Button.super.init(self,options)
+    options = options or {}
     TooltipsMixin.TooltipsMixin_init(self, options)
-    self.mode = self.options.mode or "simple"
-    self.text = self.options.text or ""
-    self.font = self.options.font or love.graphics.getFont()
-    self.textColor = self.options.textColor or {1, 1, 1, 1}
+    self.mode = options.mode or "simple"
+    self.text = options.text or ""
+    self.font = options.font or love.graphics.getFont()
+    self.textColor = options.textColor or {1, 1, 1, 1}
     self.highligtable = true
     
     if self.mode == "simple" then
         self.colors = {
-            [GUIContext.State.NORMAL] = self.options.normalColor or {0.5, 0.5, 0.5, 1},
-            [GUIContext.State.HOVER] = self.options.hoverColor or {0.7, 0.7, 0.7, 1},
-            [GUIContext.State.PRESSED] = self.options.pressedColor or {0.3, 0.3, 0.3, 1}
+            [GUIContext.State.NORMAL] = options.normalColor or {0.5, 0.5, 0.5, 1},
+            [GUIContext.State.HOVER] = options.hoverColor or {0.7, 0.7, 0.7, 1},
+            [GUIContext.State.PRESSED] = options.pressedColor or {0.3, 0.3, 0.3, 1}
         }
     elseif self.mode == "image" then
         self.images = {
-            [GUIContext.State.NORMAL] = self.options.normalImage,
-            [GUIContext.State.HOVER] = self.options.hoverImage,
-            [GUIContext.State.PRESSED] = self.options.pressedImage
+            [GUIContext.State.NORMAL] = options.normalImage,
+            [GUIContext.State.HOVER] = options.hoverImage,
+            [GUIContext.State.PRESSED] = options.pressedImage
         }
         self.imageColors = {
             [GUIContext.State.NORMAL] = {1, 1, 1, 1},
@@ -83,7 +83,7 @@ function Button:init(x, y, width, height, options)
 
     self.tag = 'Button'
     
-    self.onClick = self.options.onClick or function() end
+    self.onClick = options.onClick or function() end
 end
 
 function Button:draw()

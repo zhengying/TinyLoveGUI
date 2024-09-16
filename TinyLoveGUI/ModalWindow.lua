@@ -11,11 +11,11 @@ local ModalWindow = GUIElement:extend()
 ---@param height number
 ---@param context GUIContext
 ---@param options table
-function ModalWindow:init(x, y, width, height, context, options)
-    assert(context ~= nil, "context is nil")
-    ModalWindow.super.init(self, x, y, width, height)
+function ModalWindow:init(options)
+    assert(options.context ~= nil, "context is nil")
+    ModalWindow.super.init(self,options)
     self.tag = "ModalWindow"
-    self.context = context
+    self.context = options.context
     options = options or {}
     self.backgroundColor = options.backgroundColor or {0.8, 0.8, 0.8, 1}
     self.borderColor = options.borderColor or {0.5, 0.5, 0.5, 1}
@@ -129,7 +129,7 @@ function ModalWindow:draw()
     -- love.graphics.rectangle("line", 0, 0, self.width, self.height)
     
     -- Draw children
-    for _, child in ipairs(self.children) do
+    for _, child in ipairs(self:getChildren()) do
         child:draw()
     end
     

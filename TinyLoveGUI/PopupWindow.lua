@@ -8,29 +8,29 @@ local PopupWindow = GUIElement:extend()
 PopupWindow.currentTooltip = nil
 PopupWindow.currentTarget = nil
 
-function PopupWindow:init(x, y, width, height, text, targetX, targetY, targetWidth, targetHeight, arrowDirection)
-    local maxWidth = width or 200
-    self.font = love.graphics.newFont(12)
-    self.padding = {left=10, right=10, top=10, bottom=10}
-    self.minWidth = 100
-    self.minHeight = 40
+function PopupWindow:init(options)
+    local maxWidth = options.width or 200
+    self.font = options.font or love.graphics.newFont(12)
+    self.padding = options.padding or {left=10, right=10, top=10, bottom=10}
+    self.minWidth = options.minWidth or 100
+    self.minHeight = options.minHeight or 40
 
     -- Create a text object with center alignment
     self.textObject = love.graphics.newText(self.font)
-    self.textObject:setf(text, maxWidth - self.padding.left - self.padding.right, "left")
+    self.textObject:setf(options.text, maxWidth - self.padding.left - self.padding.right, "left")
     -- Get the actual dimensions of the wrapped text
     local textWidth, textHeight = self.textObject:getDimensions()
     
     -- Adjust the popup size based on the text dimensions
-    width = math.max(width or 0, textWidth + self.padding.left + self.padding.right)
-    height = math.max(height or 0, textHeight + self.padding.top + self.padding.bottom)   
+    local width = math.max(options.width or 0, textWidth + self.padding.left + self.padding.right)
+    local height = math.max(options.height or 0, textHeight + self.padding.top + self.padding.bottom)   
 
-    PopupWindow.super.init(self, x, y, width, height)
-    self._text = text or ""
-    self.targetX = targetX
-    self.targetY = targetY
-    self.targetWidth = targetWidth or 0
-    self.targetHeight = targetHeight or 0
+    PopupWindow.super.init(self, {x=options.x, y=options.y, width=width, height=height})
+    self._text = options.text or ""
+    self.targetX = options.targetX
+    self.targetY = options.targetY
+    self.targetWidth = options.targetWidth or 0
+    self.targetHeight = options.targetHeight or 0
     self.arrowSize = 10
     self.backgroundColor = {0.9, 0.9, 0.9, 0.9}
     self.borderColor = {0.5, 0.5, 0.5, 1}
@@ -39,7 +39,7 @@ function PopupWindow:init(x, y, width, height, text, targetX, targetY, targetWid
 
     self.zIndex = GUIContext.ZIndexGroup.POPUP
     self.tag = "PopupWindow"
-    self.arrowDirection = arrowDirection or "auto"
+    self.arrowDirection = options.arrowDirection or "auto"
     self.cornerRadius = 5
     self.arrowWidth = 20
     self.arrowHeight = 10
@@ -273,8 +273,9 @@ function PopupWindow.show(context, targetX, targetY, targetWidth, targetHeight, 
         PopupWindow.currentTooltip:dismiss()
     end
 
-    local popup = PopupWindow(0, 0, width, height, text, targetX, targetY, targetWidth, targetHeight, arrowDirection)
+    local popup = PopupWindow({x=0, y=0, width=width, height=height, text=text, targetX=targetX, targetY=targetY, targetWidth=targetWidth, targetHeight=targetHeight, arrowDirection=arrowDirection})
     context:addChild(popup)
+
     popup:setTarget(targetX, targetY, targetWidth, targetHeight)  -- This will set the target and recalculate the position
     popup.visible = true
     

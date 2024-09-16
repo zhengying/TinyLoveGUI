@@ -13,7 +13,7 @@ function Utils.makeObservable(instance, options)
             instance[key] = value
             if options.onChange then
                 if options.logAccess then
-                    print(string.format("TreeView changed: %s from %s to %s", key, tostring(oldValue), tostring(value)))
+                    print(string.format("changed: %s from %s to %s", key, tostring(oldValue), tostring(value)))
                 end
                 options.onChange(key, value, oldValue)
             end

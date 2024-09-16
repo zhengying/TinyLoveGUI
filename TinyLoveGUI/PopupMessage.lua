@@ -22,21 +22,21 @@
 local cwd = select(1, ...):match(".+%.") or ""
 local GUIElement = require(cwd .. "GUIElement")
 local GUIContext = require(cwd .. "GUIContext")
-
+local Utils = require(cwd .. "Utils")
 
 -- PopupMessage
 local PopupMessage = GUIElement:extend()
 
-function PopupMessage:init(x, y, width, height, message, duration)
-    PopupMessage.super.init(self, x, y, width, height)
-    self.message = message or "Popup Message"
-    self.duration = duration or 2  -- Default duration of 3 seconds
+function PopupMessage:init(options) 
+    PopupMessage.super.init(self, options)
+    self.message = options.message or "Popup Message"
+    self.duration = options.duration or 2  -- Default duration of 3 seconds
     self.timeLeft = self.duration
-    self.backgroundColor = {r=0.2, g=0.2, b=0.2, a=0.8}
-    self.textColor = {r=1, g=1, b=1, a=1}
-    self.padding = 0
-    self.fontSize = 16
-    self.font = love.graphics.newFont(self.fontSize)
+    self.backgroundColor = options.backgroundColor or {r=0.2, g=0.2, b=0.2, a=0.8}
+    self.textColor = options.textColor or {r=1, g=1, b=1, a=1}
+    self.padding = options.padding or 0
+    self.fontSize = options.fontSize or 16
+    self.font = options.font or love.graphics.newFont(self.fontSize)
     self.tag = "PopupMessage"
     self.zIndex = GUIContext.ZIndexGroup.POPUP --GUIElement.ZIndexGroup.Popup
     self.highligtable = false
@@ -76,8 +76,12 @@ function PopupMessage.show(context, message, duration, width, height)
     local x = (screenWidth - width) / 2
     local y = screenHeight - height - 20  -- 20 pixels from the bottom
 
-    local popup = PopupMessage(x, y, width, height, message, duration)
+    local popup = PopupMessage({x=x, y=y, width=width, height=height, message=message, duration=duration})
+    popup = Utils.observable(popup, "timeLeft", function(key, oldValue, newValue)
+        print("width changed to", newValue)
+    end)
     context:addChild(popup)
+
     return popup
 end
 

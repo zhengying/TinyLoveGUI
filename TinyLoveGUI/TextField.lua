@@ -45,12 +45,9 @@ local function utf8_sub(str, start_index, end_index)
     return string.sub(str, start_byte, end_byte)
 end
 
-function TextField:init(x, y, width, height, options)
-    TextField.super.init(self, x, y, width, height)
+function TextField:init(options) 
+    TextField.super.init(self, options)
     self.tag = "TextField"
-    if options == nil then
-        options = {}
-    end
     self.text = options.text or ""
     self.font = options.font or love.graphics.getFont()
     self.textColor = options.textColor or {1, 1, 1, 1}

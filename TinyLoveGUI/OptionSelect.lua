@@ -32,12 +32,13 @@ local TooltipsMixin = require(cwd .. "TooltipsMixin")
 
 OptionSelect:implement(TooltipsMixin)
 
-function OptionSelect:init(x, y, width, height, options, defaultOption)
-    OptionSelect.super.init(self, x, y, width, height)
-    self.options = options or {}
+function OptionSelect:init(options)
+    OptionSelect.super.init(self, options)
+    options = options or {}
+    self.options = options.options or {}
     TooltipsMixin.TooltipsMixin_init(self, options)
-    self.selectedOption = defaultOption or (options and options[1]) or nil
-    self.selectedIndex = defaultOption and table.indexof(options, defaultOption) or 1
+    self.selectedOption = options.defaultOption or (options and options[1]) or nil
+    self.selectedIndex = options.defaultOption and table.indexof(options, options.defaultOption) or 1
     self.isOpen = false
     self.hoverIndex = nil
     self.itemHeight = 30  -- Height of each option item
@@ -216,13 +217,13 @@ local function handleKeyPress(self, key)
             return true
         elseif key == "escape" then
             self.isOpen = false
-            self:setZIndex(GUIElement.ZIndexGroup.NORMAL)
+            self:setZIndex(GUIContext.ZIndexGroup.NORMAL)
             return true
         end
     else
         if key == "return" or key == "space" then
             self.isOpen = true
-            self:setZIndex(GUIElement.ZIndexGroup.POPUP)
+            self:setZIndex(GUIContext.ZIndexGroup.POPUP)
             return true
         end
     end

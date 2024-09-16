@@ -26,6 +26,9 @@ local InputEventUtils = require(cwd .. "InputEventUtils")
 local EventType = InputEventUtils.EventType  
 local InputEvent = InputEventUtils.InputEvent 
 local KeyCode = InputEventUtils.KeyCode
+local Layout = require(cwd .. "Layout")
+local FlowLayout = require(cwd .. "FlowLayout")
+local XYLayout = require(cwd .. "XYLayout")
 
 -- Helper function to split string into lines
 function string:split(sep)
@@ -44,6 +47,19 @@ function table.indexof(t, value)
     return nil
 end
 
+function table.sortedTable(tbl, compareFunc)
+    -- Create a new table with the same elements
+    local newTable = {}
+    for i, v in ipairs(tbl) do
+        newTable[i] = v
+    end
+    
+    -- Sort the new table
+    table.sort(newTable, compareFunc)
+    
+    return newTable
+end
+
 
 -- GUIElement: Base class for all GUI elements
 local GUIElement = Object:extend()
@@ -60,36 +76,41 @@ GUIElement.Animate_type = {
 local GUIContext = require(cwd .. "GUIContext")
 
 
-  
-function GUIElement:init(x, y, width, height, bgcolor)
-    self.x = x or 0
-    self.y = y or 0
-    self.width = width or 100
-    self.height = height or 100
+--- comment 
+--- @param options table {x: number, y: number, width: number, height: number, bgcolor: table, state: table, tag: string, zIndex: number}
+function GUIElement:init(options)
+    options = options or {}   
+
+    self.x = options.x or 0
+    self.y = options.y or 0
+    self.width = options.width or 100
+    self.height = options.height or 100
     self.resizing = false
     -- if type(self.width) ~= "number" or type(self.height) ~= "number" then
     --     print("Warning: GUIElement initialized with invalid dimensions", self.tag, self.width, self.height)
     --     self.width = self.width or 100
     --     self.height = self.height or 100
     -- end
-    self.children = {}
     self.parent = nil
-    if bgcolor ~= nil and bgcolor.r == nil then
-        bgcolor = {r=bgcolor[1],g=bgcolor[2],b=bgcolor[3]}
+    if options.bgcolor ~= nil and options.bgcolor.r == nil then
+        options.bgcolor = {r=options.bgcolor[1],g=options.bgcolor[2],b=options.bgcolor[3]}
     end
-    self.bgcolor = bgcolor or {r=0.5,g=0.5,b=0.5}
-    self.state = GUIContext.State.NORMAL
-    self.tag = "GUIElement"
-    self.zIndex = GUIContext.ZIndexGroup.NORMAL
+    self.bgcolor = options.bgcolor or {r=0.5,g=0.5,b=0.5}
+    self.state = options.state or GUIContext.State.NORMAL
+    self.tag = options.tag or "GUIElement"
+    self:setZIndex(options.zIndex or GUIContext.ZIndexGroup.NORMAL)
 
     self.DEBUG_DRAW = TINYLOVEGUI_DEBUG
-    self.context = nil
+    self.context =  options.context
     -- focus
     self.focusable = true
     self.highligtable = true
     self.cid = 0
+    self.layout = options.layout or XYLayout()
+    self.layout.owner = self
     -- self.focused = false
     --self.padding = {left=0, right=0, top=0, bottom=0}
+    self.popups = {}
 
     self.visible = true  -- New property to control visibility
 end
@@ -99,6 +120,11 @@ function GUIElement:setContext(context)
     if self.onAddToContext then
         self.onAddToContext()
     end
+end
+
+function GUIElement:setLayout(layout)
+    self.layout = layout
+    self.layout.owner = self
 end
 
 function GUIElement:hide()
@@ -143,28 +169,36 @@ function GUIElement:resize(width, height)
     local childWidth = width -- - (self.padding.left + self.padding.right)
     local childHeight = height --  - (self.padding.top + self.padding.bottom)
     
-    -- Notify children of the resize
-    for _, child in ipairs(self.children) do
-        if child.onParentResize then
-            -- Pass the available child width and height, excluding margin
-            child:onParentResize(childWidth, childHeight)
-        end
-        -- Check child bounds after resize
-        self:checkChildBounds(child)
-    end
+    -- -- Notify children of the resize
+    -- for _, child in ipairs(self:getChildren()) do
+    --     if child.onParentResize then
+    --         -- Pass the available child width and height, excluding margin
+    --         child:onParentResize(childWidth, childHeight)
+    --     end
+    --     -- Check child bounds after resize
+    --     self:checkChildBounds(child)
+    -- end
     
-    -- Call onResize if it exists
-    if self.onResize then
-        self:onResize(oldWidth, oldHeight)
+    -- -- Call onResize if it exists
+    -- if self.onResize then
+    --     self:onResize(oldWidth, oldHeight)
+    -- end
+
+    for _, child in ipairs(self:getChildren()) do
+        child:updateLayout()
     end
 
     self.resizing = false
 end
 
-function GUIElement:onResize(parentWidth, parentHeight)
-    -- Default implementation does nothing
-    -- Subclasses can override this to respond to parent resizing
+function GUIElement:updateLayout()
+    self.layout:updateLayout()
 end
+
+-- function GUIElement:onResize(parentWidth, parentHeight)
+--     -- Default implementation does nothing
+--     -- Subclasses can override this to respond to parent resizing
+-- end
 
 -- function GUIElement:setFocus()
 --     -- if self.focusable and self.context.focusedElement ~= self then
@@ -197,8 +231,8 @@ end
 --         table.insert(elements, self)
 --         self:sortChildren()
 --         -- Check children
---         for i = #self.children, 1, -1 do
---             local child = self.children[i]
+--         for i = #self:getChildren(), 1, -1 do
+--             local child = self:getChildren()[i]
 --             local childElements = child:getAllElementsAtPosition(x - self.x, y - self.y)
 --             for _, element in ipairs(childElements) do
 --                 table.insert(elements, element)
@@ -227,12 +261,20 @@ function GUIElement:removeFromParent()
     end
 end
 
+function GUIElement:setNeedSortChildren(needSortChildren)
+    self.layout:setNeedSortChildren(needSortChildren)
+end
+
 function GUIElement:setZIndex(zIndex)
     self.zIndex = zIndex
+    -- if self.parent then
+    --     self.parent:sortChildren()
+    -- end
     if self.parent then
-        self.parent:sortChildren()
+        self.parent:setNeedSortChildren(true)
     end
 end
+
 
 function GUIElement:getHeight()
     return self.height
@@ -242,19 +284,19 @@ function GUIElement:getWidth()
     return self.width
 end 
 
-function GUIElement:addChild(child)
+function GUIElement:addChild(child, options)
     assert(child.parent == nil, "child.parent is already set")
     assert(self.context ~= nil, "parent context is not set")
     assert(child.zIndex ~= GUIContext.ZIndexGroup.MODAL_WINDOW, "child zIndex is MODAL_WINDOW, ModalWindow should not be added to parent")
-
-    table.insert(self.children, child)
+    self.layout:addChild(child, options)
+    --table.insert(self.layout.children, child)
     child.parent = self
     child.context = self.context
     child.cid = self.context:nextCID()
     if child.onAddToContext then
         child:onAddToContext(self.context)
     end
-    self:sortChildren()
+    --self:sortChildren()
 
     -- Check if child extends beyond parent boundaries
     self:checkChildBounds(child)
@@ -293,9 +335,10 @@ function GUIElement:onPointerLeave()
 end
 
 function GUIElement:removeChild(child)
-    for i, c in ipairs(self.children) do
+    for i, c in ipairs(self:getChildren()) do
         if c == child then
-            table.remove(self.children, i)
+            table.remove(self:getChildren(), i)
+            self:setNeedSortChildren(true)
             child.parent = nil
             break
         end
@@ -317,9 +360,12 @@ function GUIElement:draw()
 
     love.graphics.setColor(self.bgcolor.r, self.bgcolor.g, self.bgcolor.b)
     love.graphics.translate(self.x, self.y)
+    local children = self:sortChildren()
     self:onDraw()
-    for _, child in ipairs(self.children) do
-        child:draw()
+    if children then
+        for _, child in ipairs(children) do
+            child:draw()
+        end
     end
     
     love.graphics.pop()
@@ -331,19 +377,28 @@ function GUIElement:onDraw()
     -- draw...
 end
 
-
-function GUIElement:sortChildren()
-    table.sort(self.children, function(a, b)
-        if a.zIndex == b.zIndex then
-            return a.cid < b.cid
-        end
-        return a.zIndex < b.zIndex
-    end)
+function GUIElement:getChildren()
+    if not self.layout  then
+        print("layout is nil")
+        return {}
+    end
+    return self.layout:getChildren()
 end
 
 
+function GUIElement:sortChildren()
+    return self.layout:sortChildren()
+end
+
+function GUIElement:getNeedSortChildren()
+    return self.layout:getNeedSortChildren()
+end
+
 function GUIElement:update(dt)
-    for _, child in ipairs(self.children) do
+    for _, child in ipairs(self:getChildren()) do
+        if child:getNeedSortChildren() then
+            self:sortChildren()
+        end
         child:update(dt)
     end
 end
@@ -359,7 +414,7 @@ end
 --     end
 
 --     -- Update children
---     for _, child in ipairs(self.children) do
+--     for _, child in ipairs(self:getChildren()) do
 --         child:updatePointerState(x - self.x, y - self.y)
 --     end
 
@@ -405,8 +460,10 @@ local function handlePositionalInput(self, event)
     
     local localX, localY = self:toLocalCoordinates(event.data.x, event.data.y)
     local handled = false
-    for i = #self.children, 1, -1 do
-        local child = self.children[i]
+    local sortedChildren = self:sortChildren()
+
+    for i = #sortedChildren, 1, -1 do
+        local child = sortedChildren[i]
         if child:isPointInside(localX, localY) and child.visible == true then
 
             local localData = {}
@@ -450,10 +507,10 @@ local function handleNonPositionalInput(self, event)
             return true
         end
     end
-
+    local sortedChildren = self:sortChildren()
     -- If not handled by this element, propagate to children
-    for i = #self.children, 1, -1 do
-        local handled = self.children[i]:handleInput(event)
+    for i = #sortedChildren, 1, -1 do
+        local handled = sortedChildren[i]:handleInput(event)
         if handled then
             return true
         end
