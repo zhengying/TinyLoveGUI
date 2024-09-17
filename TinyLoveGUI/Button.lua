@@ -60,6 +60,7 @@ function Button:init(options)
     self.text = options.text or ""
     self.font = options.font or love.graphics.getFont()
     self.textColor = options.textColor or {1, 1, 1, 1}
+    self.focusable = true
     self.highligtable = true
     
     if self.mode == "simple" then

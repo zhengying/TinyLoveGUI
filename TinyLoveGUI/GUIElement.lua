@@ -103,8 +103,8 @@ function GUIElement:init(options)
     self.DEBUG_DRAW = TINYLOVEGUI_DEBUG
     self.context =  options.context
     -- focus
-    self.focusable = true
-    self.highligtable = true
+    self.focusable = false
+    self.highligtable = false
     self.cid = 0
     self.layout = options.layout or XYLayout()
     self.layout.owner = self
@@ -160,14 +160,15 @@ function GUIElement:resize(width, height)
 
     self.context.debug_print_log('start reizing:' .. self.tag)
 
-    local oldWidth, oldHeight = self.width, self.height
+    
+
     self.width = width
     self.height = height
     self.resizing = true
     
     -- Calculate the available space for children, considering padding
-    local childWidth = width -- - (self.padding.left + self.padding.right)
-    local childHeight = height --  - (self.padding.top + self.padding.bottom)
+    -- local childWidth = width -- - (self.padding.left + self.padding.right)
+    -- local childHeight = height --  - (self.padding.top + self.padding.bottom)
     
     -- -- Notify children of the resize
     -- for _, child in ipairs(self:getChildren()) do
@@ -184,9 +185,12 @@ function GUIElement:resize(width, height)
     --     self:onResize(oldWidth, oldHeight)
     -- end
 
-    for _, child in ipairs(self:getChildren()) do
-        child:updateLayout()
-    end
+    -- for _, child in ipairs(self:getChildren()) do
+    --     child:updateLayout()
+    -- end
+
+
+    self:updateLayout()
 
     self.resizing = false
 end
@@ -350,16 +354,18 @@ function GUIElement:draw()
     if not self.visible then return end  -- Skip drawing if not visible
 
     love.graphics.push()
-
-    if self.DEBUG_DRAW then
-        love.graphics.setColor(1, 1, 1)
-        local w, h = self:getSize()
-        love.graphics.rectangle("line", self.x, self.y, w, h)
-        love.graphics.setColor(1, 1, 1)
-    end
-
     love.graphics.setColor(self.bgcolor.r, self.bgcolor.g, self.bgcolor.b)
     love.graphics.translate(self.x, self.y)
+    if self.DEBUG_DRAW then
+        love.graphics.setColor(1, 0, 0)
+        if self.old_width ~= self.width or self.old_height ~= self.height then
+            print("draw:" .. tostring(self.width) .. " " .. tostring(self.height))
+            self.old_width = self.width
+            self.old_height = self.height
+        end
+        love.graphics.rectangle("line", 0, 0, self.width, self.height)
+        love.graphics.setColor(1, 1, 1)
+    end
     local children = self:sortChildren()
     self:onDraw()
     if children then

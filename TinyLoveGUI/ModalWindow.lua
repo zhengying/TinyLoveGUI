@@ -25,7 +25,7 @@ function ModalWindow:init(options)
     self.backgroundPattern = options.backgroundPattern
     self.nineSliceImage = options.nineSliceImage
     self.nineSliceInsets = options.nineSliceInsets or {left = 8, right = 8, top = 8, bottom = 8}
-    
+    self.focusable = true
     self.bg_alpha = options.bg_alpha or 0
     -- self.modalDimColor = options.modalDimColor or {0, 0, 0, self.bg_alpha}
     self.modalBlurRadius = options.modalBlurRadius or 0  -- 0 means no blur, positive value for blur

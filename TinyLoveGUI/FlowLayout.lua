@@ -81,6 +81,7 @@ function FlowLayout:init(options)
     self.measuredWidth = 0
     self.measuredHeight = 0
     self.gap = options.gap or 0
+    self.owner = options.owner
 
     -- self.width = width or 0
     -- self.height = height or 0
@@ -106,26 +107,26 @@ end
 --     self:updateLayout()
 -- end
 
-function FlowLayout:onResize(parentWidth, parentHeight)
+-- function FlowLayout:onResize(parentWidth, parentHeight)
 
-    -- if self.sizeMode.width == FlowLayout.SizeMode.FILL_PARENT then
-    --     local parentPadding = self.parent.padding or {left=0, right=0}
-    --     self.width = parentWidth - self.x - parentPadding.left - parentPadding.right
-    -- end
+--     -- if self.sizeMode.width == FlowLayout.SizeMode.FILL_PARENT then
+--     --     local parentPadding = self.parent.padding or {left=0, right=0}
+--     --     self.width = parentWidth - self.x - parentPadding.left - parentPadding.right
+--     -- end
     
-    -- if self.sizeMode.height == FlowLayout.SizeMode.FILL_PARENT then
-    --     local parentPadding = self.parent.padding or {top=0, bottom=0}
-    --     self.height = parentHeight - self.y - parentPadding.top - parentPadding.bottom
-    -- end
+--     -- if self.sizeMode.height == FlowLayout.SizeMode.FILL_PARENT then
+--     --     local parentPadding = self.parent.padding or {top=0, bottom=0}
+--     --     self.height = parentHeight - self.y - parentPadding.top - parentPadding.bottom
+--     -- end
 
-    -- for _, child in ipairs(self.children) do
-    --     if child.onParentResize then
-    --         child:onParentResize(self.width, self.height)
-    --     end
-    -- end
+--     -- for _, child in ipairs(self.children) do
+--     --     if child.onParentResize then
+--     --         child:onParentResize(self.width, self.height)
+--     --     end
+--     -- end
 
-    self:updateLayout()
-end
+--     self:updateLayout()
+-- end
 
 -- function FlowLayout:resize(width, height)
 --     if self.sizeMode.width == FlowLayout.SizeMode.FIXED then
@@ -228,6 +229,9 @@ end
 
 function FlowLayout:updateLayout()
     
+    if self.direction == FlowLayout.Direction.HORIZONTAL then
+        print('test')
+    end
 
     local isVertical = self.direction == FlowLayout.Direction.VERTICAL
     local mainDim = isVertical and "height" or "width"
@@ -318,11 +322,11 @@ function FlowLayout:updateLayout()
 
             local childWidth, childHeight = child:getSize()
 
-            print("  child tag: " .. child.tag)
-            print("  After  - x: " .. child.x .. ", y: " .. child.y)
-            print("  Size   - width: " .. childWidth .. ", height: " .. childHeight)
-            print("  Gap: " .. self.gap)
-            print("------------------")
+            -- print("  child tag: " .. child.tag)
+            -- print("  After  - x: " .. child.x .. ", y: " .. child.y)
+            -- print("  Size   - width: " .. childWidth .. ", height: " .. childHeight)
+            -- print("  Gap: " .. self.gap)
+            -- print("------------------")
 
             if child.layout then
                 child:updateLayout()

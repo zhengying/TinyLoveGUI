@@ -55,6 +55,7 @@ function TextField:init(options)
     self.cursorPosition = utf8.len(self.text)
     self.cursorVisible = true
     self.cursorBlinkTime = 0
+    self.focusable = true
     self.focused = false
     self.padding = options.padding or 5
     self:setFocusable(true)

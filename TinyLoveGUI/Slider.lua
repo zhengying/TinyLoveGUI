@@ -36,6 +36,7 @@ function Slider:init(options)
     self.min = options.min or 0
     self.max = options.max or 100
     self.value = options.value or self.min
+    self.focusable = true
     self.onChange = function(value) end
     self.dragging = false
     self.tag = 'Slider'

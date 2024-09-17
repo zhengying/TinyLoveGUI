@@ -85,8 +85,8 @@ else
     GUIContext.print_error = function() end
 end
 
-function GUIContext:addChild(element)
-    self.root:addChild(element)
+function GUIContext:addChild(element, options)
+    self.root:addChild(element,options)
 end
 
 function GUIContext:init(options)
@@ -104,7 +104,7 @@ function GUIContext:init(options)
     self.width = options.width or w
     self.height = options.height or h
     local GUIElement = require(cwd .. "GUIElement")
-    local mainView = GUIElement({x=0, y=0, width=self.width, height=self.height})
+    local mainView = GUIElement({x=0, y=0, width=self.width, height=self.height, layout = options.layout or XYLayout(), context = options.context})
 
     self:setRoot(mainView)
     --mainView:setLayout(options.layout or XYLayout())

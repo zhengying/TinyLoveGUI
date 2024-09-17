@@ -27,6 +27,7 @@ local ProgressBar = GUIElement:extend()
 
 function ProgressBar:init(options)
     ProgressBar.super.init(self, options)
+    self.focusable = true
     self.value = options.value or 0
     self.max = options.max or 100
     self.color = options.color or {0.2, 0.6, 1} -- Default to a light blue color

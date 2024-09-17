@@ -41,6 +41,7 @@ function OptionSelect:init(options)
     self.selectedIndex = options.defaultOption and table.indexof(options, options.defaultOption) or 1
     self.isOpen = false
     self.hoverIndex = nil
+    self.focusable = true
     self.itemHeight = 30  -- Height of each option item
     self.maxVisibleItems = 5  -- Maximum number of visible items when dropdown is open
     self.scrollOffset = 0  -- New: Scroll offset for the list
