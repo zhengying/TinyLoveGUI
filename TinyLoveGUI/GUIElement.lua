@@ -107,7 +107,10 @@ function GUIElement:init(options)
     self.highligtable = false
     self.cid = 0
     self.layout = options.layout or XYLayout()
-    self.layout.owner = self
+
+    if self.layout then
+        self.layout.owner = self    
+    end
     -- self.focused = false
     --self.padding = {left=0, right=0, top=0, bottom=0}
     self.popups = {}
@@ -448,10 +451,14 @@ local function print_event_info(self, event)
 end
 
 local function handlePositionalInput(self, event)
-    -- if event.type ~= EventType.MOUSE_MOVED then
-    --     self.context.debug_print_log("--- EVENT COMING ---")
-    --     print_event_info(self,event)
-    -- end
+    if event.type ~= EventType.MOUSE_MOVED then
+        self.context.debug_print_log("--- EVENT COMING ---")
+        print_event_info(self,event)
+    end
+
+    if self.cid == 'playgoundView' then
+        print('playgoundView')
+    end
 
     if (not self:isPointInside(event.data.x, event.data.y)) or self.visible == false then
         --self.context.debug_print_log("==== not point inside:" .. self.tag)
@@ -574,13 +581,16 @@ end
 
 function GUIElement:toLocalCoordinates(x, y)
 
-    local localX, localY = x, y
-    local current = self
-    while current do
-        localX = localX - current.x
-        localY = localY - current.y
-        current = current.parent
-    end
+    -- local localX, localY = x, y
+    -- local current = self
+    -- while current do
+    --     localX = localX - current.x
+    --     localY = localY - current.y
+    --     current = current.parent
+    -- end
+
+    local localX = x - self.x
+    local localY = y - self.y
 
     return localX, localY
 end

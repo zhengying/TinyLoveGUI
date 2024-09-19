@@ -255,6 +255,10 @@ function TreeView:drawNode(node, depth, y)
 end
 
 local function handlePress(self, x, y, button)
+    if self.parent.cid == 'playgoundView' then
+        print('playgoundView')
+    end
+
     local local_x, local_y = x - self.x, y - self.y
     self.context.debug_print_log("press: localX:".. tostring(x).. " y:" .. tostring(y))
     if button and button ~= 1 then return false end  -- Only handle left mouse button or touch
@@ -272,7 +276,7 @@ end
 local function handleMove(self, x, y, dx, dy)
     local local_x, local_y = x - self.x, y - self.y
 
-    --self.context.debug_print_log("x:".. tostring(x).. " y:" .. tostring(y))
+    self.context.debug_print_log("x:".. tostring(x).. " y:" .. tostring(y))
     if not (self.isDraggingVerticalScrollbar or self.isDraggingHorizontalScrollbar) then
         -- Adjust localY by the vertical scroll offset
         local_y = local_y + self.offsetY

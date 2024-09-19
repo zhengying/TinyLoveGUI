@@ -28,7 +28,7 @@ function Layout:addChild(child)
     -- table.insert(self.children, child)
     -- self:updateLayout()
 end
-
+                                                                                    
 function Layout:removeChild(child)
     for i, c in ipairs(self.children) do
         if c == child then
