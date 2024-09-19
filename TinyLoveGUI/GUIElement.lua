@@ -162,36 +162,9 @@ function GUIElement:resize(width, height)
     assert(self.resizing == false, "seems loop reize the element")
 
     self.context.debug_print_log('start reizing:' .. self.tag)
-
-    
-
     self.width = width
     self.height = height
     self.resizing = true
-    
-    -- Calculate the available space for children, considering padding
-    -- local childWidth = width -- - (self.padding.left + self.padding.right)
-    -- local childHeight = height --  - (self.padding.top + self.padding.bottom)
-    
-    -- -- Notify children of the resize
-    -- for _, child in ipairs(self:getChildren()) do
-    --     if child.onParentResize then
-    --         -- Pass the available child width and height, excluding margin
-    --         child:onParentResize(childWidth, childHeight)
-    --     end
-    --     -- Check child bounds after resize
-    --     self:checkChildBounds(child)
-    -- end
-    
-    -- -- Call onResize if it exists
-    -- if self.onResize then
-    --     self:onResize(oldWidth, oldHeight)
-    -- end
-
-    -- for _, child in ipairs(self:getChildren()) do
-    --     child:updateLayout()
-    -- end
-
 
     self:updateLayout()
 
@@ -201,54 +174,6 @@ end
 function GUIElement:updateLayout()
     self.layout:updateLayout()
 end
-
--- function GUIElement:onResize(parentWidth, parentHeight)
---     -- Default implementation does nothing
---     -- Subclasses can override this to respond to parent resizing
--- end
-
--- function GUIElement:setFocus()
---     -- if self.focusable and self.context.focusedElement ~= self then
---     --     if self.context.focusedElement then
---     --         self.context.focusedElement:onFocusLost()
---     --         self.context:setFocus(nil)
---     --     end
---     --     self.context:setFocus(self)
---     --     self:onFocusGained()
---     -- end
---     self.context:setFocus(self)
--- end
-
--- function GUIElement:clearFocus()
---     -- if focusedElement == self then
---     --     focusedElement = nil
---     --     self:onFocusLost()
---     -- end
---     self.context:setFocus(nil)
--- end
-
--- function GUIElement:getAllElementsAtPosition(x, y)
---     local elements = {}
-    
---     -- Check if the point is within this element's bounds
---     if self.tag == "FlowLayout" then
---         print("FlowLayout:getAllElementsAtPosition", x, y)
---     end
---     if self:containsPoint(x, y) and self.visible then
---         table.insert(elements, self)
---         self:sortChildren()
---         -- Check children
---         for i = #self:getChildren(), 1, -1 do
---             local child = self:getChildren()[i]
---             local childElements = child:getAllElementsAtPosition(x - self.x, y - self.y)
---             for _, element in ipairs(childElements) do
---                 table.insert(elements, element)
---             end
---         end
---     end
-    
---     return elements
--- end
 
 function GUIElement:containsPoint(x, y)
     return self:isPointInside(x, y)
