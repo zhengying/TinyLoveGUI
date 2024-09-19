@@ -85,9 +85,9 @@ else
     GUIContext.print_error = function() end
 end
 
-function GUIContext:addChild(element, options)
-    self.root:addChild(element,options)
-end
+-- function GUIContext:addChild(element, options)
+--     self.root:addChild(element,options)
+-- end
 
 function GUIContext:init(options)
     GUIContext.super.init(self, options)
@@ -177,26 +177,10 @@ function GUIContext:setHighlight(element)
     end
 end
 
--- function GUIContext:clearHighlight()
---     if self.highlightElement == nil then return end
-
---     if self.highlightElement.onPointerLeave then
---         self.highlightElement:onPointerLeave()
---     end
-
---     self:emitLocalEvent(self.LocalEvents.HIGHLIGHT_CHANGED,nil)
-
---     self.highlightElement = nil
--- end
 
 function GUIContext:setRoot(rootElement)
     self.root = rootElement
     rootElement:setContext(self)
-end
-
-
-function GUIContext:setLayout(layout)
-    self.root:setLayout(layout)
 end
 
 function GUIContext:setFocus(element)

@@ -35,7 +35,6 @@ local function createGUI(parent)
         gap=8
     })
     
-    --local context = GUIContext({x = 0, y = 0, width = cont, height = widown_height}) 
     parent:setLayout(rowLayout)
 
     local simpleButton = Button({
@@ -64,11 +63,6 @@ local function createGUI(parent)
             myProgressBar.value = 0
         end
     })
-    -- (x, y, width, height, bgcolor, padding, alignment, direction, sizeMode, crossAlignment, gap)
-    -- rowLayout:addChild(simpleButton)
-    -- rowLayout:addChild(simpleButton2)
-
-
 
     local textField = TextField({
         x=0, y=0, width=80, height=30,
@@ -253,12 +247,6 @@ local function createGUI(parent)
        contextMenu.x = x
        contextMenu.y = y
        contextMenu:show(x, y)
-
-    --    local element = context:elementAtPosition(x, y)
-    --    local element_x, element_y = element:getGlobalPosition()
-
-    --    local popup = TinyLoveGUI.PopupWindow.show(context, element_x, element_y, element.width, element.height, 100, 100, "This is a popup!")
-       --popup:setTarget(element.x, element.y, element.width, element.height)
    end)
 
 
@@ -279,53 +267,6 @@ local function createGUI(parent)
    return parent
 
 end
-
--- -- LÖVE callbacks
--- local gui
-
--- local window_width, widown_height = 1024, 768
--- function love.load()
-    
---     love.window.setMode(window_width, widown_height,{highdpi=true, resizable = true})
---     gui = createGUI(context)
--- end
-
--- function love.update(dt)
---     gui:update(dt)
---     gui:updateMousePosition(love.mouse.getPosition())
--- end
-
--- function love.draw()
---     gui:draw()
--- end
-
--- function love.mousemoved(x, y, dx, dy)
---     gui:mousemoved(x, y, dx, dy)
--- end
-
--- function love.wheelmoved(x, y)
---     gui:wheelmoved(x, y)
--- end
-
--- function love.mousepressed(x, y, button)
---     gui:mousepressed(x, y, button)
--- end
-
--- function love.mousereleased(x, y, button)
---     gui:mousereleased(x, y, button)
--- end
-
--- function love.keypressed(key)
---     gui:keypressed(key)
--- end
-
--- function love.keyreleased(key)
---     gui:keyreleased(key)
--- end
-
--- function love.textinput(text)
---     gui:textinput(text)
--- end 
 
 
 return createGUI

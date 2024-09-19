@@ -412,39 +412,6 @@ function GUIElement:update(dt)
     end
 end
 
--- function GUIElement:updatePointerState(x, y)
---     local isInside = self:isPointInside(x, y)
---     local wasInside = self.pointerInside or false
-
---     if isInside and not wasInside then
---         self:pointerEnter()
---     elseif not isInside and wasInside then
---         self:pointerLeave()
---     end
-
---     -- Update children
---     for _, child in ipairs(self:getChildren()) do
---         child:updatePointerState(x - self.x, y - self.y)
---     end
-
---     self.pointerInside = isInside
--- end
-
--- function GUIElement:pointerEnter()
---     self.pointerInside = true
---     if self.onPointerEnter then
---         self:onPointerEnter()
---     end
--- end
-
--- function GUIElement:pointerLeave()
---     self.pointerInside = false
---     if self.onPointerLeave then
---         self:onPointerLeave()
---     end
--- end
-
-
 local function print_event_info(self, event)
     local Utils = require(cwd .. "Utils")
     Utils.print_table(event)
@@ -464,12 +431,6 @@ local function handlePositionalInput(self, event)
         --self.context.debug_print_log("==== not point inside:" .. self.tag)
         return false
     end
-
-    -- if event.type == EventType.MOUSE_PRESSED then
-    --     print("==== mouse pressed:" .. self.tag)
-    -- end
-
-    -- self.context.debug_print_log("==== point inside:" .. self.tag)
     
     local localX, localY = self:toLocalCoordinates(event.data.x, event.data.y)
     local handled = false
@@ -580,15 +541,6 @@ function GUIElement:getGlobalPositionByLocalXY(x, y)
 end
 
 function GUIElement:toLocalCoordinates(x, y)
-
-    -- local localX, localY = x, y
-    -- local current = self
-    -- while current do
-    --     localX = localX - current.x
-    --     localY = localY - current.y
-    --     current = current.parent
-    -- end
-
     local localX = x - self.x
     local localY = y - self.y
 

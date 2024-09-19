@@ -95,66 +95,6 @@ function FlowLayout:onAddToContext(context)
     self:updateLayout()
 end
 
--- function FlowLayout:setSize(width, height)
---     self.width = width
---     self.height = height
---     self:updateLayout()
--- end
-
--- function FlowLayout:setSizeMode(widthMode, heightMode)
---     self.sizeMode.width = widthMode or self.sizeMode.width
---     self.sizeMode.height = heightMode or self.sizeMode.height
---     self:updateLayout()
--- end
-
--- function FlowLayout:onResize(parentWidth, parentHeight)
-
---     -- if self.sizeMode.width == FlowLayout.SizeMode.FILL_PARENT then
---     --     local parentPadding = self.parent.padding or {left=0, right=0}
---     --     self.width = parentWidth - self.x - parentPadding.left - parentPadding.right
---     -- end
-    
---     -- if self.sizeMode.height == FlowLayout.SizeMode.FILL_PARENT then
---     --     local parentPadding = self.parent.padding or {top=0, bottom=0}
---     --     self.height = parentHeight - self.y - parentPadding.top - parentPadding.bottom
---     -- end
-
---     -- for _, child in ipairs(self.children) do
---     --     if child.onParentResize then
---     --         child:onParentResize(self.width, self.height)
---     --     end
---     -- end
-
---     self:updateLayout()
--- end
-
--- function FlowLayout:resize(width, height)
---     if self.sizeMode.width == FlowLayout.SizeMode.FIXED then
---         self.width = width
---     end
---     if self.sizeMode.height == FlowLayout.SizeMode.FIXED then
---         self.height = height
---     end
---     self:updateLayout()
-
--- end
-
--- function FlowLayout:getWidth()
---     if self.sizeMode.width == FlowLayout.SizeMode.WRAP_CONTENT then
---         return self.measuredWidth
---     else
---         return self.width
---     end
--- end
-
--- function FlowLayout:getHeight()
---     if self.sizeMode.height == FlowLayout.SizeMode.WRAP_CONTENT then
---         return self.measuredHeight
---     else
---         return self.height
---     end
--- end
-
 ---comment
 ---@param child any
 ---@param childrenProps any
@@ -189,14 +129,6 @@ function FlowLayout:removeChild(child)
     self:updateLayout()
 end
 
--- function FlowLayout:getSize()
---     return self.width, self.height
--- end
-
--- function FlowLayout:getMeasuredSize()
---     return self.measuredWidth, self.measuredHeight
--- end
-
 ---@param alignment FlowLayout.Alignment
 function FlowLayout:setAlignment(alignment)
     self.alignment = alignment
@@ -208,24 +140,6 @@ function FlowLayout:setDirection(direction)
     self.direction = direction
     self:updateLayout()
 end
-
--- function FlowLayout:updateSizeMode()
---     -- Update layout size based on size modes
---     if self.sizeMode.width == FlowLayout.SizeMode.WRAP_CONTENT then
---         self.width = self.measuredWidth
---     elseif self.sizeMode.width == FlowLayout.SizeMode.FILL_PARENT and self.parent then
---         local parentPadding = self.parent.padding or {left=0, right=0}
---         self.width = self.parent.width - parentPadding.left - parentPadding.right - self.x
---     end
-
---     if self.sizeMode.height == FlowLayout.SizeMode.WRAP_CONTENT then
---         self.height = self.measuredHeight
---     elseif self.sizeMode.height == FlowLayout.SizeMode.FILL_PARENT and self.parent then
---         local parentPadding = self.parent.padding or {top=0, bottom=0}
---         self.height = self.parent.height - parentPadding.top - parentPadding.bottom - self.y
---     end
--- end
-
 
 function FlowLayout:updateLayout()
     
@@ -334,17 +248,6 @@ function FlowLayout:updateLayout()
         until true
     end
 
-    -- -- Update measured sizes
-    -- if isVertical then
-    --     self.measuredHeight = currentPos - spacing + self.padding[isVertical and "bottom" or "right"]
-    --     self.measuredWidth = maxCrossSize + self.padding.left + self.padding.right
-    -- else
-    --     self.measuredWidth = currentPos - spacing + self.padding[isVertical and "bottom" or "right"]
-    --     self.measuredHeight = maxCrossSize + self.padding.top + self.padding.bottom
-    -- end
-
-    --self:updateSizeMode()
-
     for _, child in ipairs(self.children) do
         if child.layoutComplete then
             child:layoutComplete()
@@ -352,41 +255,5 @@ function FlowLayout:updateLayout()
     end
 
 end
-
--- function FlowLayout:draw()
---     self.super.draw(self)
---     if self.DEBUG_DRAW then
---         love.graphics.setColor(1, 0, 0, 0.5)
---         love.graphics.rectangle("line", self.x, self.y, self.width, self.height)
---         for _, child in ipairs(self.children) do
---             love.graphics.setColor(0, 1, 1, 0.5)
---             love.graphics.rectangle("line", self.x + child.x, self.y + child.y, child.width, child.height)
---         end
---     end
--- end
-
--- function FlowLayout:draw()
---     -- Call the original draw method if it exists
---     if self.super.draw then
---         self.super.draw(self)
---     end
-
---     -- Debug drawing
---     love.graphics.setColor(1, 0, 0, 0.5)  -- Semi-transparent red
---     love.graphics.rectangle("fill", self.x, self.y, self.width, self.height)
-
---     -- Draw padding areas
---     love.graphics.setColor(0, 1, 0, 0.5)  -- Semi-transparent green
---     love.graphics.rectangle("fill", self.x, self.y, self.padding.left, self.height)  -- Left padding
---     love.graphics.rectangle("fill", self.x + self.width - self.padding.right, self.y, self.padding.right, self.height)  -- Right padding
---     love.graphics.rectangle("fill", self.x, self.y, self.width, self.padding.top)  -- Top padding
---     love.graphics.rectangle("fill", self.x, self.y + self.height - self.padding.bottom, self.width, self.padding.bottom)  -- Bottom padding
-
---     -- Draw children
---     for _, child in ipairs(self.children) do
---         love.graphics.setColor(0, 0, 1, 0.5)  -- Semi-transparent blue
---         love.graphics.rectangle("line", self.x + child.x, self.y + child.y, child.width, child.height)
---     end
--- end
 
 return FlowLayout

@@ -38,7 +38,7 @@ local function createGUI()
     })
 
 
-    context:setLayout(mainLayout)
+    context.root:setLayout(mainLayout)
 
     local barLayout = FlowLayout({
         bgcolor = {1, 1, 1},
