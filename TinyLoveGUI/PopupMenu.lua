@@ -206,7 +206,7 @@ local function handleMove(self, x, y)
                 local submenuX = parentX + self:calculateMenuWidth(parentMenu)
                 local submenuY = parentY + (itemIndex - 1) * self.style.itemHeight
                 
-                self.context:debug_print_log('Opening submenu at (' .. submenuX .. ',' .. submenuY .. ')')
+                self.context.debug_print_log('Opening submenu at (' .. submenuX .. ',' .. submenuY .. ')')
                 table.insert(self.popupStack, {node = self.hoveredNode, x = submenuX, y = submenuY})
             end
         else
@@ -232,33 +232,33 @@ end
 
 function PopupMenu:getNodeAt(x, y)
     local localX, localY = x - self.x, y - self.y
-    self.context:debug_print_log('getNodeAt: global(' .. x .. ',' .. y .. '), local(' .. localX .. ',' .. localY .. ')')
+    self.context.debug_print_log('getNodeAt: global(' .. x .. ',' .. y .. '), local(' .. localX .. ',' .. localY .. ')')
     
     -- Check submenus first (in reverse order)
     for i = #self.popupStack, 1, -1 do
         local submenu = self.popupStack[i]
-        self.context:debug_print_log('Checking submenu ' .. i .. ' at (' .. submenu.x .. ',' .. submenu.y .. ')')
+        self.context.debug_print_log('Checking submenu ' .. i .. ' at (' .. submenu.x .. ',' .. submenu.y .. ')')
         if self:isPointInMenu(localX, localY, submenu) then
             local relativeY = localY - submenu.y
             local index = math.floor(relativeY / self.style.itemHeight) + 1
             if index > 0 and index <= #submenu.node.groupStatus.children then
-                self.context:debug_print_log('Found node in submenu ' .. i .. ' at index ' .. index)
+                self.context.debug_print_log('Found node in submenu ' .. i .. ' at index ' .. index)
                 return submenu.node.groupStatus.children[index], i
             end
         end
     end
 
     -- Check root menu
-    self.context:debug_print_log('Checking root menu')
+    self.context.debug_print_log('Checking root menu')
     if self:isPointInMenu(localX, localY, {node = self.root, x = 0, y = 0}) then
         local index = math.floor(localY / self.style.itemHeight) + 1
         if index > 0 and index <= #self.root.groupStatus.children then
-            self.context:debug_print_log('Found node in root menu at index ' .. index)
+            self.context.debug_print_log('Found node in root menu at index ' .. index)
             return self.root.groupStatus.children[index], 0
         end
     end
     
-    self.context:debug_print_log('No node found')
+    self.context.debug_print_log('No node found')
     return nil, nil
 end
 
@@ -267,7 +267,7 @@ function PopupMenu:isPointInMenu(x, y, menu)
     local menuHeight = #menu.node.groupStatus.children * self.style.itemHeight
     local isInMenu = x >= menu.x and x <= menu.x + menuWidth and
                      y >= menu.y and y <= menu.y + menuHeight
-    self.context:debug_print_log('isPointInMenu: (' .. x .. ',' .. y .. ') in menu at (' .. menu.x .. ',' .. menu.y .. 
+    self.context.debug_print_log('isPointInMenu: (' .. x .. ',' .. y .. ') in menu at (' .. menu.x .. ',' .. menu.y .. 
           ') with size ' .. menuWidth .. 'x' .. menuHeight .. ': ' .. tostring(isInMenu))
     return isInMenu
 end

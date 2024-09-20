@@ -239,11 +239,12 @@ local function createGUI(parent)
    contextMenu.root:addChild(helpMenu)
 
    -- Add the context menu to mainView
-   parent:addChild(contextMenu)
+   parent.context.root:addChild(contextMenu)
 
 
    --right-click handler to mainView
    parent.context:setOnRightClick(function(self, x, y)
+       
        contextMenu.x = x
        contextMenu.y = y
        contextMenu:show(x, y)

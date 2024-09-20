@@ -57,11 +57,11 @@ function PopupMessage:draw()
     love.graphics.translate(self.x, self.y)
 
     -- Draw background
-    love.graphics.setColor(self.backgroundColor.r, self.backgroundColor.g, self.backgroundColor.b, self.backgroundColor.a)
+    love.graphics.setColor(self.backgroundColor[1], self.backgroundColor[2], self.backgroundColor[3], self.backgroundColor[4])
     love.graphics.rectangle("fill", 0, 0, self.width, self.height, 5, 5)  -- Rounded corners
 
     -- Draw text
-    love.graphics.setColor(self.textColor.r, self.textColor.g, self.textColor.b, self.textColor.a)
+    love.graphics.setColor(self.textColor[1], self.textColor[2], self.textColor[3], self.textColor[4])
     love.graphics.setFont(self.font)
     love.graphics.printf(self.message, self.padding, self.height/2 - self.fontSize/2, self.width - 2*self.padding, "center")
 
@@ -80,7 +80,7 @@ function PopupMessage.show(context, message, duration, width, height)
     -- popup = Utils.observable(popup, "timeLeft", function(key, oldValue, newValue)
     --     print("width changed to", newValue)
     -- end)
-    context.root:addChild(popup)
+    context:addChild(popup)
 
     return popup
 end

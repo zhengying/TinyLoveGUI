@@ -223,11 +223,16 @@ end
 function GUIElement:addChild(child, options)
     assert(child.parent == nil, "child.parent is already set")
     assert(self.context ~= nil, "parent context is not set")
+
+    if child.zIndex == GUIContext.ZIndexGroup.MODAL_WINDOW then
+        print("child zIndex is MODAL_WINDOW, ModalWindow should not be added to parent")
+    end
+
     assert(child.zIndex ~= GUIContext.ZIndexGroup.MODAL_WINDOW, "child zIndex is MODAL_WINDOW, ModalWindow should not be added to parent")
 
     --table.insert(self.layout.children, child)
 
-    
+
     child.parent = self
     child.context = self.context
     child.cid = self.context:nextCID()
