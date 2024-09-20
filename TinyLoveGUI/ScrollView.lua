@@ -51,7 +51,7 @@ end
 function ScrollView:updateContentSize()
     self.contentWidth = 0
     self.contentHeight = 0
-    for _, child in ipairs(self.children) do
+    for _, child in ipairs(self:getChildren()) do
         self.contentWidth = math.max(self.contentWidth, child.x + child.width)
         self.contentHeight = math.max(self.contentHeight, child.y + child.height)
     end

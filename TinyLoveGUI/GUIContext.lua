@@ -315,7 +315,7 @@ function GUIContext:handleInput(event)
     if self:hasModalWindow() then
         local modalWindow = self:getTopModal()
         local blhandled = modalWindow:handleInput(event)
-        if not blhandled then
+        if blhandled then
             if event.type == GUIContext.EventType.MOUSE_PRESSED or event.type == GUIContext.EventType.TOUCH_PRESSED then
                 modalWindow:dismiss()
             end

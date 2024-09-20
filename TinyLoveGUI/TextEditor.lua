@@ -51,6 +51,9 @@ function TextEditor:init(options)
     self.selectionStart = nil
     self.selectionEnd = nil
     self.selectionColor = options.selectionColor or {0.5, 0.5, 1, 0.5}
+    if #self.selectionColor == 3 then
+        self.selectionColor[4] = 1
+    end
 
     self.lastClickTime = 0
     self.clickCount = 0
@@ -58,7 +61,13 @@ function TextEditor:init(options)
 
     self.scrollbarWidth = options.scrollbarWidth or 10
     self.scrollbarColor = options.scrollbarColor or {0.5, 0.5, 0.5, 1}
+    if #self.scrollbarColor == 3 then
+        self.scrollbarColor[4] = 1
+    end
     self.scrollbarHandleColor = options.scrollbarHandleColor or {0.7, 0.7, 0.7, 1}
+    if #self.scrollbarHandleColor == 3 then
+        self.scrollbarHandleColor[4] = 1
+    end
     self.isDraggingScrollbar = false
     self.scrollbarDragOffset = 0
 
@@ -67,7 +76,13 @@ function TextEditor:init(options)
     self.maxLineWidth = 0
     self.horizontalScrollbarHeight = options.horizontalScrollbarHeight or 10
     self.horizontalScrollbarColor = options.horizontalScrollbarColor or {0.5, 0.5, 0.5, 1}
+    if #self.horizontalScrollbarColor == 3 then
+        self.horizontalScrollbarColor[4] = 1
+    end
     self.horizontalScrollbarHandleColor = options.horizontalScrollbarHandleColor or {0.7, 0.7, 0.7, 1}
+    if #self.horizontalScrollbarHandleColor == 3 then
+        self.horizontalScrollbarHandleColor[4] = 1
+    end
     self.isDraggingHorizontalScrollbar = false
     self.horizontalScrollbarDragOffset = 0
     
@@ -201,7 +216,7 @@ function TextEditor:draw()
     love.graphics.translate(self.x, self.y)
     
     -- Draw background
-    love.graphics.setColor(self.bgcolor.r, self.bgcolor.g, self.bgcolor.b)
+    love.graphics.setColor(self.bgcolor[1], self.bgcolor[2], self.bgcolor[3], self.bgcolor[4])
     love.graphics.rectangle("fill", 0, 0, self.width, self.height)
     
     -- Set up scissor to clip text

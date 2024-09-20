@@ -27,7 +27,7 @@ local myProgressBar
 local function createGUI(parent)
     local rowLayout = FlowLayout({
         x=0, y=0, width=nil, height=nil, 
-        bgcolor={r=0.1,g=0.1,b=0.1}, 
+        bgcolor={0.1,0.1,0.1}, 
         padding={left=25, right=5, top=15, bottom=5}, 
         alignment=FlowLayout.Alignment.START, 
         direction=FlowLayout.Direction.VERTICAL,

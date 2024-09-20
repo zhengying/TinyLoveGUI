@@ -21,7 +21,7 @@
 --]]
 
 
-TINYLOVEGUI_DEBUG = false
+TINYLOVEGUI_DEBUG = true
 
 local cwd   = (...):gsub('%.init$', '') .. "."
 
@@ -44,6 +44,8 @@ local GUIContext = require(cwd .. "GUIContext")
 local PopupWindow = require(cwd .. "PopupWindow")
 local TextEditor = require(cwd .. "TextEditor")
 local Layout = require(cwd .. "Layout")
+local Label = require(cwd .. "Label")
+local Utils = require(cwd .. "Utils")
 
 
 return {
@@ -64,4 +66,6 @@ return {
     InputEventUtils = InputEventUtils,
     TextEditor = TextEditor,
     Layout = Layout,
+    Label = Label,
+    Utils = Utils,
 }

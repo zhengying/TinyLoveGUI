@@ -76,6 +76,9 @@ local function createGUI()
         elseif currentExample == "old" then
             exampleCreator = loadExampleSource("example_old")
             exampleCreator(playgoundView)
+        elseif currentExample == "game_ui" then
+            exampleCreator = loadExampleSource("example_game_ui")
+            exampleCreator(playgoundView)
         else
             assert(false, "Invalid example: " .. currentExample)
         end
@@ -101,8 +104,18 @@ local function createGUI()
         end
     })
 
+    local example3Button = Button({
+        width = 200, height = 40,
+        text = "Switch 3 Example",
+        onClick = function()
+            currentExample = 'game_ui'
+            loadExample()
+        end
+    })
+
     menuBar:addChild(example1Button, {flexGrow = 0, flexShrink = 0})
     menuBar:addChild(example2Button, {flexGrow = 0, flexShrink = 0})
+    menuBar:addChild(example3Button, {flexGrow = 0, flexShrink = 0})
 
     -- local textEditor = TextEditor({})
     -- context:addChild(textEditor, {flexGrow = 0, flexShrink = 0})

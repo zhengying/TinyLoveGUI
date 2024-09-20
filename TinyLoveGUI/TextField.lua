@@ -58,6 +58,10 @@ function TextField:init(options)
     self.focusable = true
     self.focused = false
     self.padding = options.padding or 5
+    self.bgcolor = options.bgcolor or {0.5,0.5,0.5,1}
+    if #self.bgcolor == 3 then
+        self.bgcolor[4] = 1
+    end
     self:setFocusable(true)
     
     -- New options for text length and input type limits
@@ -99,7 +103,7 @@ end
 
 
 function TextField:onDraw()
-    love.graphics.setColor(self.bgcolor.r, self.bgcolor.g, self.bgcolor.b)
+    love.graphics.setColor(self.bgcolor[1], self.bgcolor[2], self.bgcolor[3], self.bgcolor[4])
     love.graphics.rectangle("fill", 0, 0, self.width, self.height)
     
     local globalx, globaly = self:getGlobalPosition()

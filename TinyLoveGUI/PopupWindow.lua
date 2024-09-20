@@ -274,7 +274,7 @@ function PopupWindow.show(context, targetX, targetY, targetWidth, targetHeight, 
     end
 
     local popup = PopupWindow({x=0, y=0, width=width, height=height, text=text, targetX=targetX, targetY=targetY, targetWidth=targetWidth, targetHeight=targetHeight, arrowDirection=arrowDirection})
-    context:addChild(popup)
+    context.root:addChild(popup)
 
     popup:setTarget(targetX, targetY, targetWidth, targetHeight)  -- This will set the target and recalculate the position
     popup.visible = true

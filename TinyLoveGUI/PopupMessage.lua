@@ -32,8 +32,8 @@ function PopupMessage:init(options)
     self.message = options.message or "Popup Message"
     self.duration = options.duration or 2  -- Default duration of 3 seconds
     self.timeLeft = self.duration
-    self.backgroundColor = options.backgroundColor or {r=0.2, g=0.2, b=0.2, a=0.8}
-    self.textColor = options.textColor or {r=1, g=1, b=1, a=1}
+    self.backgroundColor = options.backgroundColor or {0.2, 0.2, 0.2, 0.8}
+    self.textColor = options.textColor or {1, 1, 1, 1}
     self.padding = options.padding or 0
     self.fontSize = options.fontSize or 16
     self.font = options.font or love.graphics.newFont(self.fontSize)
@@ -80,7 +80,7 @@ function PopupMessage.show(context, message, duration, width, height)
     -- popup = Utils.observable(popup, "timeLeft", function(key, oldValue, newValue)
     --     print("width changed to", newValue)
     -- end)
-    context:addChild(popup)
+    context.root:addChild(popup)
 
     return popup
 end

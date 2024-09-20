@@ -93,9 +93,13 @@ function GUIElement:init(options)
     -- end
     self.parent = nil
     if options.bgcolor ~= nil and options.bgcolor.r == nil then
-        options.bgcolor = {r=options.bgcolor[1],g=options.bgcolor[2],b=options.bgcolor[3]}
+        options.bgcolor = {options.bgcolor[1],options.bgcolor[2],options.bgcolor[3]}
     end
-    self.bgcolor = options.bgcolor or {r=0.5,g=0.5,b=0.5}
+    self.bgcolor = options.bgcolor or {0.5,0.5,0.5}
+    if #self.bgcolor == 3 then
+        self.bgcolor[4] = 1
+    end
+    
     self.state = options.state or GUIContext.State.NORMAL
     self.tag = options.tag or "GUIElement"
     self:setZIndex(options.zIndex or GUIContext.ZIndexGroup.NORMAL)
@@ -220,11 +224,17 @@ function GUIElement:addChild(child, options)
     assert(child.parent == nil, "child.parent is already set")
     assert(self.context ~= nil, "parent context is not set")
     assert(child.zIndex ~= GUIContext.ZIndexGroup.MODAL_WINDOW, "child zIndex is MODAL_WINDOW, ModalWindow should not be added to parent")
-    self.layout:addChild(child, options)
+
     --table.insert(self.layout.children, child)
+
+    
     child.parent = self
     child.context = self.context
     child.cid = self.context:nextCID()
+
+    self.layout:addChild(child, options)
+
+
     if child.onAddToContext then
         child:onAddToContext(self.context)
     end
@@ -282,7 +292,7 @@ function GUIElement:draw()
     if not self.visible then return end  -- Skip drawing if not visible
 
     love.graphics.push()
-    love.graphics.setColor(self.bgcolor.r, self.bgcolor.g, self.bgcolor.b)
+    love.graphics.setColor(self.bgcolor[1], self.bgcolor[2], self.bgcolor[3], self.bgcolor[4])
     love.graphics.translate(self.x, self.y)
     if self.DEBUG_DRAW then
         love.graphics.setColor(1, 0, 0)

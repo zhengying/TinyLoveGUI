@@ -99,6 +99,10 @@ end
 ---@param child any
 ---@param childrenProps any
 function FlowLayout:addChild(child, childrenProps)
+    assert(child.parent ~= nil, "child.parent is nil")
+    assert(child.context ~= nil, "child.context is nil")
+    assert(child.cid ~= nil, "child.cid is nil")
+
     table.insert(self.children, child)
 
     childrenProps = childrenProps or {flexGrow=0, flexShrink=1, flexBasis="auto"}
